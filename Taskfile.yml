@@ -1,0 +1,43 @@
+version: '3'
+
+# The task interface (EC-0016): setup, check and lint, plus test for the
+# skill. `task check` runs every gate the Validate workflow runs, so a change
+# that passes here passes there (TASK-13). No product directory (EC-0018).
+
+tasks:
+  setup:
+    desc: Install the tools pinned in .config/mise/config.toml.
+    cmds:
+      - mise install
+
+  check:
+    desc: Run every gate the Validate workflow runs.
+    cmds:
+      - task: lint
+      - task: test
+      - task: conventions
+
+  lint:
+    desc: Lint the workflows with actionlint and zizmor.
+    cmds:
+      - actionlint
+      - zizmor --min-severity medium .github
+
+  test:
+    desc: Validate the skill and the plugin as each tool that installs them reads them.
+    env:
+      DISABLE_TELEMETRY: '1'
+    cmds:
+      - python3 -I scripts/check_skill.py
+      - uvx --from skills-ref@0.1.1 agentskills validate plugins/musher/skills/musher
+      - npx -y skills@1.8.1 add . --list
+
+  conventions:
+    desc: Check the repository against its pinned conventions release.
+    cmds:
+      - conventions check --fail-on warning
+
+  catalog:
+    desc: Rewrite the skill's Catalog index from the live Catalog.
+    cmds:
+      - python3 -I scripts/gen_catalog_index.py

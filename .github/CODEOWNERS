@@ -1,0 +1,8 @@
+# Who reviews which paths. The last matching pattern wins. No catch-all: a
+# change outside these paths needs no code owner's review.
+/.github/                      @musher-dev/sdk
+/.repo/                        @musher-dev/sdk
+/.config/                      @musher-dev/sdk
+/.claude-plugin/               @musher-dev/sdk
+/plugins/                      @musher-dev/sdk
+/skills.sh.json                @musher-dev/sdk

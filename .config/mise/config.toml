@@ -1,0 +1,26 @@
+# Every CLI this repository runs, in the one place mise reads unprompted
+# (TOOL-01), beside the mise.lock that `mise lock` writes (TOOL-05). The first
+# pin is the conventions release this repository adopts (ADOPT-09).
+
+# The mise every install uses: jdx/mise-action's version in the workflows is
+# the same (TOOL-04).
+min_version = "2026.9.12"
+
+[tools]
+"github:musher-dev/engineering-conventions" = "0.9.3"
+
+# GHA-33 delegates workflow correctness and security to these two.
+"aqua:rhysd/actionlint" = "1.7.12"
+"aqua:zizmorcore/zizmor" = "1.30.1"
+
+# COMMIT-05 delegates commit messages and pull request titles to committed.
+# The github: backend, because aqua's entry has no Linux arm64 build.
+"github:crate-ci/committed" = "1.1.11"
+# Reads the types and scopes out of committed.toml for the title check.
+"aqua:mikefarah/yq" = "4.53.6"
+
+# The skill checks: skills-ref (the Agent Skills validator) runs through uvx,
+# and the skills CLI through npx.
+python = "3.13.15"
+"aqua:astral-sh/uv" = "0.12.18"
+node = "24.21.0"

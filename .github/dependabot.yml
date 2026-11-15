@@ -1,0 +1,20 @@
+# Dependabot keeps the workflows' action pins current (DEPS-11). The CLIs in
+# .config/mise/config.toml have no Dependabot ecosystem and are raised by hand.
+# Every title is `build(deps): …`, which .config/commits/committed.toml accepts.
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # A release gets a week before it is proposed, so a compromised one is
+    # more likely to be caught first.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      actions:
+        patterns: ["*"]
