@@ -1,0 +1,17 @@
+# This repository's identity (EC-0009), and where its product lives (EC-0018).
+# The organization's custom properties are read from this file, by
+# musher-dev/infra-github's declarations sync.
+schema_version = 1
+name = "sdk-agent-skills"
+system = "sdk"
+component = "agent-skills"
+kind = "content"
+owner = "@musher-dev/sdk"
+lifecycle = "experimental"
+audience = "public"
+tier = 3
+
+[layout]
+# No product directory: the plugin lives under plugins/, at the paths the
+# skills CLI, Claude Code's plugin marketplace and other agents look for.
+product = ""

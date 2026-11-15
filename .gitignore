@@ -1,0 +1,7 @@
+# Installs made while testing the skill locally.
+/.agents/
+/.claude/skills/
+/skills-lock.json
+__pycache__/
+# Eval run output (claude plugin eval).
+/plugins/musher/evals/results/

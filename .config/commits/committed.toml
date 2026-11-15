@@ -1,0 +1,31 @@
+# The commit rules committed checks every commit message and pull request
+# title against, and the one list of the types and scopes this repository
+# accepts (COMMIT-01). The pull request workflow passes this path.
+style = "conventional"
+subject_length = 72
+line_length = 0
+subject_capitalized = false
+subject_not_punctuated = true
+imperative_subject = true
+no_fixup = false
+no_wip = true
+
+allowed_types = [
+  "feat",
+  "fix",
+  "docs",
+  "chore",
+  "refactor",
+  "test",
+  "ci",
+  "build",
+]
+
+allowed_scopes = [
+  "skill", # plugins/musher/skills/**
+  "plugin", # .claude-plugin/, plugins/musher/.claude-plugin/, skills.sh.json
+  "ci", # .github/workflows/**
+  "deps", # Dependabot; tool pins
+  "docs", # README.md, AGENTS.md
+  "repo", # Taskfile, .config/, .repo/, scripts/
+]
