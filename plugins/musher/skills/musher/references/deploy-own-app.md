@@ -84,13 +84,23 @@ image through the API:
 
 1. Write a component (`kind: COMPONENT`) for the image and check it with
    `POST /v1/organizations/{org}/components:validate`. Then create it with `POST /v1/organizations/{org}/components`.
-2. Write a blueprint that places the component on a compute profile (`blueprints.md`). Check it with
+   The response's `componentId` is what a blueprint names.
+2. Publish the component revision: `POST /v1/components/{id}/versions/{revision}:publish`. A blueprint cannot
+   publish while it names an unpublished component revision.
+3. Write a blueprint that places the component on a compute profile (`blueprints.md`). Each node names its component
+   by `componentRef`, the component's id, and `revision`. Check it with
    `POST /v1/organizations/{org}/blueprints:validate`, then create it with
    `POST /v1/organizations/{org}/blueprints`.
-3. Publish the revision: `POST /v1/blueprints/{id}/versions/{revision}:publish`.
-4. Deploy it with `POST /v1/organizations/{org}/deployments:deployBlueprint`, using the body
+4. Publish the revision: `POST /v1/blueprints/{id}/versions/{revision}:publish`.
+5. Deploy it with `POST /v1/organizations/{org}/deployments:deployBlueprint`, using the body
    `{"blueprintId": "…", "revision": 1, "name": "…"}` and an `Idempotency-Key` header.
-5. Wait for `ACTIVE` and get the URL, as in SKILL.md.
+6. Wait for `ACTIVE` and `READY`, and get the URL, as in SKILL.md.
+
+A validation answer of `INCOMPLETE` with no `diagnostics` is the best one `:validate` gives: nothing wrong was found.
+It does not check that the compute profile is offered or that a host has room. Take the profile from
+`GET /v1/reference/compute-profiles`, and if the deployment sits in `WAITING_FOR_HOST`, see `troubleshoot.md`.
+
+With Musher's MCP tools the same six steps are six tools: `mcp.md`.
 
 The request and response shapes are in the OpenAPI document, https://api.musher.dev/openapi.json. Read the operation
 before you call it, and don't guess field names. If the user can wait for a CLI with `deploy`, that route is much
