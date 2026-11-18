@@ -6,6 +6,9 @@
   The key carries the permissions of the role chosen for it, and it is shown only once. An agent can't create or
   reveal keys.
 - Keys look like `mush_…`, and each one is bound to one organization.
+- A key is made for one use, the API or the MCP server, and the other refuses it. The API answers an MCP key `401`
+  with "API key is not valid for this API surface". Both kinds start with `mush_`, so the prefix does not tell
+  them apart.
 - **The key goes in the environment, never in the chat or on a command line.** Read it from `MUSHER_API_KEY`. Send
   it as `Authorization: Bearer $MUSHER_API_KEY`.
 - **CLI precedence:** `--api-key`, then `MUSHER_API_KEY`, then the OS keyring, then the credentials file. Use the

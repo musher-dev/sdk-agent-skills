@@ -5,7 +5,8 @@ description: >-
   (musher.dev): installs Catalog tools such as n8n, Open WebUI, LiteLLM,
   Langfuse, OpenClaw, Hermes Agent and Ollama, runs databases such as Postgres
   and Qdrant, deploys a container image or a Dockerfile, writes and validates blueprints, and checks status,
-  logs, cost and failed deploys, through the musher CLI or the Musher HTTP API.
+  logs, cost and failed deploys, through the musher CLI, the Musher HTTP API or
+  Musher's MCP tools.
   Use when the user mentions Musher, musher.dev, the musher CLI or a Musher
   blueprint, or wants an always-on host for one of these tools or for their own
   container. Not for running these tools locally or for using them, such as
@@ -17,7 +18,7 @@ compatibility: >-
   the deploy command, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
-  version: "0.1.0"
+  version: "0.2.0"
   homepage: https://docs.musher.dev/
   openclaw:
     primaryEnv: MUSHER_API_KEY
@@ -30,7 +31,8 @@ metadata:
 
 Musher runs containers and open-source apps as **deployments** with HTTPS URLs, persistent volumes and logs. You can
 reach it three ways: the `musher` CLI, the HTTP API at `https://api.musher.dev`, and the Console at
-`https://console.musher.dev`, where a person signs in.
+`https://console.musher.dev`, where a person signs in. A session that has Musher's MCP server connected reaches the
+same operations as tools.
 
 ## Rules that always apply
 
@@ -39,8 +41,9 @@ reach it three ways: the `musher` CLI, the HTTP API at `https://api.musher.dev`,
 2. **Confirm before anything that bills.** Before a deploy, get the cost estimate (`references/catalog.md`), tell the
    user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
    quote the live figure, never one from memory.
-3. **Never report success before you see it.** A deploy is done when the deployment's `status.phase` is `ACTIVE` and
-   you have its URL. `PROVISIONING` is not done. `FAILED` or `DEGRADED` means read the logs
+3. **Never report success before you see it.** A deploy is done when the deployment's `status.phase` is `ACTIVE`,
+   its `status.readiness` is `READY`, and you have its URL. `PROVISIONING` is not done, and after an update the
+   phase stays `ACTIVE` while the app is down. `FAILED` or `DEGRADED` means read the logs
    (`references/troubleshoot.md`).
 4. **Stay non-interactive.** Pass `--json --no-input` to the CLI. Send an `Idempotency-Key` header (a fresh UUID per
    intended action) with every API write, so a retry cannot create a second deployment.
@@ -58,6 +61,7 @@ reach it three ways: the `musher` CLI, the HTTP API at `https://api.musher.dev`,
 | Status, logs, restart, rollback, suspend | CLI or API | `references/operate.md` |
 | A deploy that failed or a `4xx` error | Read the problem document | `references/troubleshoot.md` |
 | Keys, organizations, balance, `402` | — | `references/auth-and-billing.md` |
+| Anything above, when the session has Musher's MCP tools (`deploy_blueprint`, `get_deployment`, …) | The tools | `references/mcp.md` |
 
 **Check the CLI before you rely on it.** Run `musher deploy --help`. If the command is missing, the installed CLI is
 an older bundle-era release (0.3.x) that cannot deploy. Use the API instead; don't try to upgrade it mid-task.
@@ -104,7 +108,8 @@ curl -fsS -X POST \
    `name` is lowercase letters, digits and hyphens, starting with a letter. The response is the deployment, already
    in `PROVISIONING`. A `422` lists every problem in `errors`, and nothing is created.
 5. **Wait for it:** poll `GET /v1/deployments/{id}` (the id is `metadata.id`) until `status.phase` is
-   `ACTIVE`. Then `GET /v1/organizations/{org}/deployments/{id}/endpoints` lists each endpoint's `publicUrl`. Report the URL and the hourly cost.
+   `ACTIVE`. Then `GET /v1/organizations/{org}/deployments/{id}/endpoints` lists each endpoint. `publicUrl` holds the
+   bare hostname: put `publicScheme` and `://` in front of it. Report the URL and the hourly cost.
 
 **Known limit:** with an API key, `n8n`, `langfuse`, `librechat`, `metabase`, `label-studio` and `sim` can fail with
 `ERR_DEPLOYMENT_FACT_UNAVAILABLE`, because they need facts about a signed-in person. If that happens, give the user
