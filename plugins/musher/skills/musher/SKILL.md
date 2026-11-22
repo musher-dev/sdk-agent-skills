@@ -16,8 +16,8 @@ compatibility: >-
   Works through Musher's MCP tools when the session has the server
   (https://mcp.musher.dev) connected, with no key. The API and CLI routes need
   network access to api.musher.dev and a Musher API key in MUSHER_API_KEY.
-  Deploying the user's own code also needs the musher CLI with
-  the deploy command, Docker or BuildKit, and a container registry to push to.
+  Building and deploying the user's own code with the CLI needs musher CLI
+  0.4.1 or later, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
   version: "0.2.0"
@@ -54,7 +54,7 @@ same operations as tools.
 | --- | --- | --- |
 | Anything below, when the session has Musher's MCP tools (`deploy_blueprint`, `get_deployment`, …) | The tools | `references/mcp.md` |
 | An app from the Catalog (n8n, Open WebUI, LiteLLM, OpenClaw, …) | API `deployments:cloneFromListing` | `references/catalog.md` |
-| Their own image (`ghcr.io/…:tag`) | CLI `musher deploy --image`, or the API with a blueprint | `references/deploy-own-app.md` |
+| Their own image (`ghcr.io/…:tag`) | CLI `musher deploy --image`; or, with the MCP tools, `create_component` → `create_blueprint` → `deploy_blueprint`; or the API with a blueprint | `references/deploy-own-app.md`, `references/mcp.md` |
 | Their own repository or Dockerfile, built and deployed | CLI `musher init` + `musher deploy` | `references/deploy-own-app.md` |
 | A multi-service app, or a change to a Catalog app | A blueprint | `references/blueprints.md` |
 | Status, logs, restart, rollback, suspend | CLI or API | `references/operate.md` |
@@ -62,7 +62,9 @@ same operations as tools.
 | Keys, organizations, balance, `402` | — | `references/auth-and-billing.md` |
 
 **Check the CLI before you rely on it.** Run `musher deploy --help`. If the command is missing, the installed CLI is
-an older bundle-era release (0.3.x) that cannot deploy. Use the API instead; don't try to upgrade it mid-task.
+an older bundle-era release (0.3.x) that cannot deploy. Deploying needs 0.4.1 or later (`musher version` prints it).
+Tell the user how to upgrade (`references/deploy-own-app.md`) and ask before you run anything, or use the MCP tools
+or the API instead.
 
 ## Preflight, in this order
 
@@ -120,7 +122,7 @@ the Console route: **Catalog → Blueprints →** the app's card **→ Deploy**,
 
 ## Deploy the user's own container
 
-With an image that already exists, and a CLI that has `deploy`:
+With an image that already exists, and musher CLI 0.4.1 or later:
 
 ```bash
 musher deploy api --image ghcr.io/acme/api:v1.4.2 --port 8080 --json --no-input

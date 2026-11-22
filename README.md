@@ -41,8 +41,9 @@ plugin and server names in front, such as `mcp__plugin_musher_musher__get_deploy
 - **A balance.** Usage is prepaid. An Owner or Admin adds funds in the Console under **Organization settings →
   Overview → Add funds**. Compute is billed only from the moment a deployment is healthy, and a deploy that fails
   first is never billed.
-- **For deploying your own code:** the `musher` CLI with its `deploy` command, Docker or BuildKit, and a container
-  registry to push to.
+- **For building and deploying your own code with the CLI:** the `musher` CLI 0.4.1 or later
+  ([install it](https://docs.musher.dev/guides/deploy/install-the-cli)), Docker or BuildKit, and a container registry
+  to push to. An image that is already pushed also deploys through the MCP tools or the API.
 
 ## What the skill covers
 
