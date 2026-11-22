@@ -29,9 +29,11 @@ Claude Code, as a plugin from this repository's marketplace:
 ## What you need
 
 - **A Musher account.** Sign up at [musher.dev](https://musher.dev).
-- **An API key, set as `MUSHER_API_KEY` in the agent's environment.** Create one at
-  [console.musher.dev](https://console.musher.dev): your organization's **Settings → API Keys**. Don't paste it into
-  the chat; the skill tells the agent never to ask for it.
+- **Musher's MCP server, or an API key.** With the server (`https://mcp.musher.dev`) connected, the agent signs in
+  through your browser and needs no key; [docs.musher.dev/agents](https://docs.musher.dev/agents) has the steps for
+  each agent. The API and the CLI routes need an API key, set as `MUSHER_API_KEY` in the agent's environment.
+  Create one at [console.musher.dev](https://console.musher.dev): your organization's **Settings → API Keys**. Don't
+  paste it into the chat; the skill tells the agent never to ask for it.
 - **A balance.** Usage is prepaid. An Owner or Admin adds funds in the Console under **Organization settings →
   Overview → Add funds**. Compute is billed only from the moment a deployment is healthy, and a deploy that fails
   first is never billed.

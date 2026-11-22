@@ -13,8 +13,10 @@ description: >-
   writing n8n workflows.
 license: MIT
 compatibility: >-
-  Needs network access to api.musher.dev and a Musher API key in
-  MUSHER_API_KEY. Deploying the user's own code also needs the musher CLI with
+  Works through Musher's MCP tools when the session has the server
+  (https://mcp.musher.dev) connected, with no key. The API and CLI routes need
+  network access to api.musher.dev and a Musher API key in MUSHER_API_KEY.
+  Deploying the user's own code also needs the musher CLI with
   the deploy command, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
@@ -31,8 +33,9 @@ same operations as tools.
 
 ## Rules that always apply
 
-1. **Never ask the user to paste an API key into the chat, and never put a key on a command line.** Read it from
-   `MUSHER_API_KEY`. If it is unset, tell the user how to create one (below) and stop.
+1. **Never ask the user to paste a key into the chat, and never put a key on a command line.** Musher's MCP tools
+   need no key. The API and the CLI read one from `MUSHER_API_KEY`. With neither the tools nor the key, tell the user
+   how to get one of them (the preflight, below) and stop.
 2. **Confirm before anything that bills.** Before a deploy, get the cost estimate (`references/catalog.md`), tell the
    user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
    quote the live figure, never one from memory.
@@ -49,6 +52,7 @@ same operations as tools.
 
 | The user wants | Route | Read |
 | --- | --- | --- |
+| Anything below, when the session has Musher's MCP tools (`deploy_blueprint`, `get_deployment`, …) | The tools | `references/mcp.md` |
 | An app from the Catalog (n8n, Open WebUI, LiteLLM, OpenClaw, …) | API `deployments:cloneFromListing` | `references/catalog.md` |
 | Their own image (`ghcr.io/…:tag`) | CLI `musher deploy --image`, or the API with a blueprint | `references/deploy-own-app.md` |
 | Their own repository or Dockerfile, built and deployed | CLI `musher init` + `musher deploy` | `references/deploy-own-app.md` |
@@ -56,17 +60,21 @@ same operations as tools.
 | Status, logs, restart, rollback, suspend | CLI or API | `references/operate.md` |
 | A deploy that failed or a `4xx` error | Read the problem document | `references/troubleshoot.md` |
 | Keys, organizations, balance, `402` | — | `references/auth-and-billing.md` |
-| Anything above, when the session has Musher's MCP tools (`deploy_blueprint`, `get_deployment`, …) | The tools | `references/mcp.md` |
 
 **Check the CLI before you rely on it.** Run `musher deploy --help`. If the command is missing, the installed CLI is
 an older bundle-era release (0.3.x) that cannot deploy. Use the API instead; don't try to upgrade it mid-task.
 
 ## Preflight, in this order
 
-1. **Key.** `MUSHER_API_KEY` is set. If it isn't, tell the user: "Create an API key at
-   https://console.musher.dev (your organization's **Settings → API Keys → Create API Key**) and set it as
-   `MUSHER_API_KEY` in this environment."
-   A key is bound to one organization.
+0. **Tools.** If the session has Musher's MCP tools, use them and skip the key: follow `references/mcp.md`. A client
+   may show a tool with a prefix, such as `mcp__musher__get_deployment`, so match the name's end. Steps 2 and 3
+   still apply, through `list_organizations` and the tools' answers.
+1. **Key**, for the API and the CLI. `MUSHER_API_KEY` is set. If it isn't, and there are no tools, offer the user
+   both ways in, then stop until one is ready:
+   - connect Musher's MCP server, which signs in through the browser and needs no key
+     (`references/mcp.md`, "Connect the server");
+   - or create an API key at https://console.musher.dev (your organization's **Settings → API Keys → Create API
+     Key**) and set it as `MUSHER_API_KEY` in this environment. A key is bound to one organization.
 2. **Organization.** `GET /v1/organizations` lists the caller's organizations in `data`; take the
    `id` the deploy paths need.
 3. **Balance.** Usage is prepaid. A new organization starts at $0, and a deploy it cannot cover returns
