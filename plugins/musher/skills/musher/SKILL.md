@@ -83,9 +83,11 @@ or the API instead.
    `402 payment-required`. Then tell the user that an Owner or Admin must add funds in the Console: the organization
    selector, **Organization settings → Overview → Add funds** (minimum $10, by card). You cannot do it for them.
 
+Send the key on standard input with `-H @-`, never as an argument: `printf` is a shell builtin, so the key never
+reaches a process list. Standard input then carries the header, so give a body with `-d '…'`, not `-d @-`.
+
 ```bash
-curl -fsS https://api.musher.dev/v1/organizations \
-  -H "Authorization: Bearer $MUSHER_API_KEY"
+printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -fsS -H @- https://api.musher.dev/v1/organizations
 ```
 
 ## Deploy a Catalog app (the common case)
@@ -102,9 +104,8 @@ curl -fsS https://api.musher.dev/v1/organizations \
 4. **Deploy:**
 
 ```bash
-curl -fsS -X POST \
+printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -fsS -X POST -H @- \
   "https://api.musher.dev/v1/organizations/$ORG_ID/deployments:cloneFromListing" \
-  -H "Authorization: Bearer $MUSHER_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"listingId": "<listing id>", "name": "team-n8n"}'
