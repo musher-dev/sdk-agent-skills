@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- MCP first. A session with Musher's MCP tools uses them and needs no `MUSHER_API_KEY`; the key is for the API and
+  CLI routes. With neither, the skill offers both, and `references/mcp.md` tells the user how to connect the server
+  (`https://mcp.musher.dev`, OAuth in the browser).
+- The Claude Code plugin bundles `.mcp.json`, so installing it also adds the server. The person signs in with `/mcp`.
+- OpenClaw no longer hides the skill without a key: the `metadata.openclaw` block, whose `requires.env` gated it, is
+  gone, and every `metadata` value is a string.
+- `musher deploy` shipped in CLI 0.4.0. The skill asks for 0.4.1 or later, tells the user how to upgrade, and drops
+  the advice to build the CLI from `main`.
+- `references/mcp.md` drops its release pin and single-run figures, adds the toolsets, and says tool names may carry a
+  client prefix. `scripts/check_mcp_tools.py` fails when the skill names a tool the server no longer has.
+- `blueprints.md` has a Contents list, and every reference over 100 lines must have one.
+- The curl examples send the key on standard input, so it never reaches a process list.
+
 ## 0.2.0 (unreleased)
 
 - `references/mcp.md`: the route for a session that has Musher's MCP tools. It gives the order that deploys your own
