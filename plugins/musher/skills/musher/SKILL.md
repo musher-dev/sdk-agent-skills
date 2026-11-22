@@ -20,11 +20,6 @@ metadata:
   author: musher-dev
   version: "0.2.0"
   homepage: https://docs.musher.dev/
-  openclaw:
-    primaryEnv: MUSHER_API_KEY
-    requires:
-      env:
-        - MUSHER_API_KEY
 ---
 
 # Musher

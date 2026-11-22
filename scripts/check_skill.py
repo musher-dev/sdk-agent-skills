@@ -9,6 +9,9 @@
 - The skill's metadata.version equals the plugin's version, and the plugin's
   and marketplace's names agree with the skill's.
 - skills.sh.json points at the directory the skill is in.
+- Every `metadata` value is a string, as the Agent Skills specification
+  defines it: one `key: value` line, with no nested mapping or list, and no
+  value YAML would read as a number, a boolean or null.
 
 Standard library only. `uvx skills-ref validate` checks the frontmatter itself.
 """
@@ -39,6 +42,32 @@ def folded(block: str, key: str) -> str:
     return " ".join(line.strip() for line in match.group(1).splitlines()) if match else ""
 
 
+def metadata_problems(block: str) -> list[str]:
+    """Every `metadata` entry that is not a string, as the specification requires."""
+    match = re.search(r"^metadata:[ \t]*(.*)\n((?:[ \t]+.*\n?)*)", block, re.M)
+    if not match:
+        return []
+    if match.group(1).strip():
+        return ["metadata is written inline; give each key its own `key: value` line with a string value"]
+    problems = []
+    for line in match.group(2).splitlines():
+        entry = re.match(r"^  ([A-Za-z0-9_.-]+):[ \t]*(.*)$", line)
+        if not entry:
+            problems.append(f"metadata holds a nested value ({line.strip()!r}); every value must be a string")
+            continue
+        key, value = entry.groups()
+        if not value or value[0] in "{[|>&*":
+            problems.append(f"metadata.{key} is not a one-line string")
+        elif value[0] not in "'\"" and re.fullmatch(
+            r"[-+]?(\d[\d_]*(\.\d*)?([eE][-+]?\d+)?|\.\d+|0x[0-9a-fA-F]+|\.inf|\.nan)"
+            r"|true|false|yes|no|on|off|null|~",
+            value,
+            re.I,
+        ):
+            problems.append(f"metadata.{key} reads as a {value!r} that is not a string; quote it")
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
     text = SKILL.read_text(encoding="utf-8")
@@ -47,6 +76,8 @@ def main() -> int:
     lines = text.count("\n")
     if lines >= 500:
         problems.append(f"SKILL.md is {lines} lines; keep it under 500 and move detail into references/")
+
+    problems += metadata_problems(block)
 
     description = folded(block, "description")
     if not description:
