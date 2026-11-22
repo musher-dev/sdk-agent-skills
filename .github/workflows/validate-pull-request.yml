@@ -31,7 +31,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca  # v5.1.1
+      - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785  # v5.2.8
         with:
           version: 2026.9.12
 
@@ -59,7 +59,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Check the title has a scope and a lowercase subject
-        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v6.1.1
+        uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6  # v6.1.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
