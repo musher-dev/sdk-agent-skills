@@ -9,6 +9,8 @@
 - The skill's metadata.version equals the plugin's version, and the plugin's
   and marketplace's names agree with the skill's.
 - skills.sh.json points at the directory the skill is in.
+- A reference over 100 lines opens with a `## Contents` list that links every
+  other `##` section, so a model that stops partway knows what the rest holds.
 - Every `metadata` value is a string, as the Agent Skills specification
   defines it: one `key: value` line, with no nested mapping or list, and no
   value YAML would read as a number, a boolean or null.
@@ -68,6 +70,27 @@ def metadata_problems(block: str) -> list[str]:
     return problems
 
 
+def slug(heading: str) -> str:
+    """The anchor GitHub gives a heading."""
+    return re.sub(r"[^a-z0-9 _-]", "", heading.strip().lower()).replace(" ", "-")
+
+
+def contents_problems(path: Path) -> list[str]:
+    """A long reference must list each of its sections in a Contents block."""
+    text = path.read_text(encoding="utf-8")
+    if text.count("\n") <= 100:
+        return []
+    headings = re.findall(r"^## (.+)$", text, re.M)
+    if "Contents" not in headings:
+        return [f"references/{path.name} is over 100 lines and has no `## Contents` list"]
+    linked = set(re.findall(r"\]\(#([a-z0-9_-]+)\)", text))
+    return [
+        f"references/{path.name}'s Contents list doesn't link `## {heading}`"
+        for heading in headings
+        if heading != "Contents" and slug(heading) not in linked
+    ]
+
+
 def main() -> int:
     problems: list[str] = []
     text = SKILL.read_text(encoding="utf-8")
@@ -94,6 +117,9 @@ def main() -> int:
         for name in re.findall(r"`([a-z0-9-]+\.md)`", path.read_text(encoding="utf-8")):
             if name != "SKILL.md" and name not in present:
                 problems.append(f"references/{path.name} names {name}, which does not exist")
+
+    for path in sorted((SKILL_DIR / "references").glob("*.md")):
+        problems += contents_problems(path)
 
     version = re.search(r'^\s+version: "([^"]+)"$', block, re.M)
     plugin = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
