@@ -29,7 +29,8 @@ has no Musher tools and no `MUSHER_API_KEY`, tell the user:
 - Their client signs in with OAuth in the browser, and they choose the organization and the role it works under. No
   key goes in the client's configuration.
 - The steps for each client are at https://docs.musher.dev/agents. In Claude Code it is
-  `claude mcp add --transport http musher https://mcp.musher.dev`, then `/mcp` to sign in.
+  `claude mcp add --transport http musher https://mcp.musher.dev`, then `/mcp` to sign in. Installing this skill's
+  Claude Code plugin adds the same server; the user still signs in with `/mcp`.
 - Their organization's client access policy has to admit the client.
 
 Then wait for them. If they would rather use an API key, take the API route in SKILL.md.

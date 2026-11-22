@@ -33,7 +33,6 @@ word of it literally, so an error here becomes their error, made confidently.
 | --- | --- | --- |
 | No released CLI has `deploy`: 0.3.x is bundle-era (musher-cli #96) | SKILL.md, `deploy-own-app.md`, `troubleshoot.md` | A release with `deploy` ships, and the installer works |
 | API keys can't deploy n8n, Langfuse, LibreChat, Metabase, Label Studio and Sim (platform-api #1434) | SKILL.md, `catalog.md`, `troubleshoot.md` | #1434 is fixed |
-| MCP is behind an entitlement that no plan grants | `mcp.md` covers a session that already has the tools, as observed on release 27.0.1; the plugin ships no `.mcp.json` | MCP is available on a plan. Then add `.mcp.json` (`https://mcp.musher.dev`, OAuth), and check `mcp.md` against the released server |
 
 ## Checks
 

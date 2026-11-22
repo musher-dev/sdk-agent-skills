@@ -26,6 +26,10 @@ Claude Code, as a plugin from this repository's marketplace:
 /plugin install musher --marketplace musher-dev/sdk-agent-skills
 ```
 
+The plugin also adds Musher's MCP server (`https://mcp.musher.dev`). It carries no key: run `/mcp` in Claude Code,
+choose the plugin's `musher` server and sign in through your browser. Claude Code names a plugin's tools with the
+plugin and server names in front, such as `mcp__plugin_musher_musher__get_deployment`.
+
 ## What you need
 
 - **A Musher account.** Sign up at [musher.dev](https://musher.dev).
