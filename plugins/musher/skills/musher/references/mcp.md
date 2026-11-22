@@ -4,13 +4,17 @@ Use this page when the session has Musher's MCP server connected: tools named `c
 `deploy_blueprint`, `get_deployment` and so on. This route needs no API key. If the session has no such tools, tell
 the user how to connect the server ([Connect the server](#connect-the-server)), or use the API or the CLI.
 
-Everything here was observed on release 27.0.1 of the server (231 tools). The server changes. Where a tool's own
-description disagrees with this page, believe the tool.
+The server ships often. Where a tool's own description disagrees with this page, believe the tool.
+
+**Tool names may carry a prefix.** This page names tools bare, as the server does. A client can show them with its own
+prefix: Claude Code shows `mcp__musher__get_deployment` for a server added as `musher`, and
+`mcp__plugin_musher_musher__get_deployment` for the one this skill's plugin adds. Match a tool by the end of its name.
 
 ## Contents
 
 - [Connect the server](#connect-the-server)
 - [What the server is](#what-the-server-is)
+- [Toolsets](#toolsets)
 - [Deploy your own image, in order](#deploy-your-own-image-in-order)
 - [Read a validation answer](#read-a-validation-answer)
 - [Choose a compute profile that places](#choose-a-compute-profile-that-places)
@@ -42,11 +46,28 @@ Then wait for them. If they would rather use an API key, take the API route in S
 - An **MCP key is not an API key**, though both start with `mush_`. The MCP server answers an API key
   `401 invalid_token`, exactly as it answers a wrong key. The API answers an MCP key `401` with the detail "API key is
   not valid for this API surface". A person chooses the use, API or MCP, when they create the key in the Console.
-- `tools/list` is paged, 100 tools a page, with `nextCursor`. A few tools are marked to load first; a client with no
-  tool search has to read every page to see the rest.
+- `tools/list` is paged, with `nextCursor`. A client with no tool search has to read every page to see every tool.
 - A refused call comes back as the tool's result with `isError: true`. The text is the problem's `detail`, and the
   whole problem document (`type`, `status`, `traceId`) is in the result's `_meta` under `dev.musher/problem`.
 - Past the rate limit the server answers `429` with a `Retry-After` header. Wait that many seconds.
+
+## Toolsets
+
+The server groups its tools into toolsets. Each tool names its own in `_meta` under `dev.musher/toolset`:
+
+`blueprints`, `builds`, `catalog`, `components`, `compute`, `connections`, `deployments`, `domains`, `endpoints`,
+`feedback`, `gateways`, `locations`, `logs`, `metrics`, `models`, `organization`, `reference`, `registry`,
+`replicas`, `schemas`, `shared-volumes`, `usage`, `variables`, `volumes`.
+
+- Only the deploy journey's entry points load up front, such as `list_organizations`, `search_catalog_listings`,
+  `get_deploy_readiness`, `create_component`, `create_blueprint`, `deploy_blueprint` and `get_deployment`.
+- A client with tool search finds the rest. **Search for a tool, by what it does or by its toolset, before you
+  conclude it is missing.** `publish_component_version`, `update_deployment` and `list_deployment_log_entries`, for
+  example, don't load up front.
+- A person sees only the tools their own role and the role they chose for the client both allow. A tool that is
+  still missing after a search may be one their role withholds: say so, rather than working around it.
+
+The public list of every tool, by toolset, is at https://docs.musher.dev/agents/tools.
 
 ## Deploy your own image, in order
 
@@ -81,16 +102,16 @@ To change a running app, send the whole document again with `metadata.revision` 
 - `get_deploy_readiness` answering `deployable: true` says a region is online. It does not say a given profile fits.
 - A node that cannot be placed reads `WAITING_FOR_HOST` in `status.progress.stage`, and its replica reads
   `placementReason: no_eligible_host` in `list_deployment_replicas`. The message says it starts "as soon as a host is
-  ready". No host may be on its way: in one run a 2 GiB profile waited ten minutes and never placed, while the 1 GiB
-  profile placed in six seconds.
+  ready", but no host may be on its way, and a larger profile can wait indefinitely where a smaller one places at
+  once.
 - If the stage has not moved in three minutes, tell the user. Offer a smaller profile (a new blueprint revision, then
   `update_deployment`) or `cancel_deployment`. Don't wait in silence.
 - `placementReason` can still read `no_eligible_host` after `placementStatus` reads `DECIDED`. Read the status.
 
 ## Updates roll every node
 
-`update_deployment` gave every node a new replica, including nodes the new revision did not change. A node with a
-volume is down while the volume detaches and attaches again: three to four minutes in each of four updates. So:
+`update_deployment` can give every node a new replica, including nodes the new revision did not change. A node with a
+volume is down while the volume detaches and attaches again, which can take minutes. So:
 
 - put every change you can into one revision;
 - tell the user the whole app goes down before each update;
