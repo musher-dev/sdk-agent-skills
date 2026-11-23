@@ -1,0 +1,202 @@
+{
+  "tools": [
+    {
+      "name": "clone_deployment_from_listing",
+      "title": "Deploy an app from the catalog",
+      "description": "Deploy, install or launch an app from the catalog as it is: creates a new deployed app from a published BLUEPRINT listing and starts provisioning it. Billing starts once the app first comes up healthy (ACTIVE) and covers only the hours it runs; a refused deploy creates nothing, and an app that fails before it first runs is never billed. Find the listing with search_catalog_listings or list_catalog_listings, then read the deploy form of the listing's blueprint revision (get_blueprint_version_deploy_form) for the parameters it takes. The name must be DNS-compliant and unique in the organization. When the inputs do not resolve, nothing is created and the error lists every problem. On success the app is returned in PROVISIONING, or in DRAFT while components built from git sources are built and verified; poll get_deployment until its phase settles. To change the app before deploying it, copy it into the library with clone_blueprint_from_listing and deploy that with deploy_blueprint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST …/deployments:cloneFromListing — deploy a catalog listing's Blueprint.",
+            "properties": {
+              "connections": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "description": "One whole connection: one the organization configured, or an external endpoint.",
+                  "properties": {
+                    "connectionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid",
+                      "description": "Identifier of a connection the organization configured: an LLM connection, or a database, cache or object-store connection."
+                    },
+                    "external": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "description": "An external endpoint supplied in full."
+                    }
+                  }
+                },
+                "description": "Whole replacements for connection parameters, keyed by parameter name: either one of the organization's configured connections ({connectionId}: an LLM connection, or a database, cache or object-store connection of the protocol the parameter needs) or, for a language model, an external endpoint ({external: {baseURL, apiKey, model, protocol}}). Omit a parameter to use the connection at its path."
+              },
+              "environmentId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid",
+                "description": "Identifier of the environment this deployment targets. Omit to use the organization's default environment."
+              },
+              "listingId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Identifier of the catalog listing to deploy."
+              },
+              "name": {
+                "type": "string",
+                "description": "DNS-compliant name for this deployed app, unique within the organization. Must match ^[a-z][a-z0-9-]{0,61}[a-z0-9]$.",
+                "pattern": "^[a-z][a-z0-9-]{0,61}[a-z0-9]$"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "Submitted parameter values keyed by parameter name, each a logical JSON value the receiving inputs' schemas validate. Generated and variable- or connection-sourced parameters are never submitted; an unknown or misspelled name is rejected."
+              },
+              "replicas": {
+                "type": "integer",
+                "description": "Desired number of running instances of every node that runs. Defaults to 1. A node that mounts a non-shared volume runs one instance at a time, so a deployment of one cannot scale past 1.",
+                "default": 1,
+                "minimum": 1,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "listingId",
+              "name"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Deploy an app from the catalog",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_blueprint_version_deploy_form",
+      "title": "Get the deploy form of a blueprint revision",
+      "description": "Get the deploy form of one blueprint revision: the parameters a person fills in to deploy the app, in display order, with each field's label, type and default when it declares one. Generated secrets and organization variables are filled by the platform and are not fields; a connection parameter is one field choosing a whole connection. creatorFacts names the facts about the deploying person the app receives. Use it before deploy_blueprint to know which values to ask for.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "blueprint_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision: the document's metadata.revision.",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "blueprint_id",
+          "revision"
+        ]
+      },
+      "annotations": {
+        "title": "Get the deploy form of a blueprint revision",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_catalog_listing_by_slug",
+      "title": "Get the catalog listing for a slug",
+      "description": "Look up a catalog app by its exact slug, such as n8n, and return its latest published listing, as get_catalog_listing does. Use it when the person names a specific app by its slug; use search_catalog_listings when the name is only approximate. Not found when no published listing carries the slug.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "annotations": {
+        "title": "Get the catalog listing for a slug",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_catalog_listing_cost_estimate",
+      "title": "Estimate what a catalog app costs to run",
+      "description": "Estimate the price, cost or hourly and monthly rate of running a catalog app before deploying it. Prices one replica of every node at today's compute rates, the ones the deploy form shows, and sums them, with a per-node breakdown. Only compute is included: storage, egress and model inference are billed apart, and an EXTERNAL node costs nothing. complete is false when a node's compute has no price, and rateStatus is PLACEHOLDER while a rate summed is a launch figure. A COMPONENT listing deploys nothing and is refused.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "listing_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "listing_id"
+        ]
+      },
+      "annotations": {
+        "title": "Estimate what a catalog app costs to run",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_organizations",
+      "title": "List my organizations",
+      "description": "List the organizations (workspaces, teams) the caller belongs to, with the caller's membership in each, a page at a time. Start here: most other tools take an organization id from this list. An AI client, connected over OAuth or with an MCP key, sees only the one organization it was authorized in, and an API key only its own.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor from previous response"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "annotations": {
+        "title": "List my organizations",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

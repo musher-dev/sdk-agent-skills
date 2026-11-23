@@ -20,7 +20,7 @@ compatibility: >-
   0.4.1 or later, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
-  version: "0.3.0"
+  version: "0.3.0" # x-release-please-version
   homepage: https://docs.musher.dev/
 ---
 
@@ -36,13 +36,14 @@ same operations as tools.
 1. **Never ask the user to paste a key into the chat, and never put a key on a command line.** Musher's MCP tools
    need no key. The API and the CLI read one from `MUSHER_API_KEY`. With neither the tools nor the key, tell the user
    how to get one of them (the preflight, below) and stop.
-2. **Confirm before anything that bills.** Before a deploy, get the cost estimate (`references/catalog.md`), tell the
-   user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
+2. **Confirm before anything that bills.** Before a deploy, get the cost: a Catalog app's estimate
+   (`references/catalog.md`), or each node's compute profile pricing for the user's own app
+   (`references/auth-and-billing.md`). Tell the user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
    quote the live figure, never one from memory.
 3. **Never report success before you see it.** A deploy is done when the deployment's `status.phase` is `ACTIVE`,
    its `status.readiness` is `READY`, and you have its URL. `PROVISIONING` is not done, and after an update the
-   phase stays `ACTIVE` while the app is down. `FAILED` or `DEGRADED` means read the logs
-   (`references/troubleshoot.md`).
+   phase stays `ACTIVE` while the app is down. A `status.phase` of `FAILED`, or a `status.health` of `DEGRADED` or
+   `UNHEALTHY`, means read the logs (`references/troubleshoot.md`).
 4. **Stay non-interactive.** Pass `--json --no-input` to the CLI. Send an `Idempotency-Key` header (a fresh UUID per
    intended action) with every API write, so a retry cannot create a second deployment.
 5. **You cannot pay, create keys, or invite people.** Those need a person in the Console. Say exactly what to click,
@@ -53,7 +54,7 @@ same operations as tools.
 | The user wants | Route | Read |
 | --- | --- | --- |
 | Anything below, when the session has Musher's MCP tools (`deploy_blueprint`, `get_deployment`, …) | The tools | `references/mcp.md` |
-| An app from the Catalog (n8n, Open WebUI, LiteLLM, OpenClaw, …) | API `deployments:cloneFromListing` | `references/catalog.md` |
+| An app from the Catalog (n8n, Open WebUI, LiteLLM, OpenClaw, …) | API `deployments:cloneFromListing`; or, with the MCP tools, `clone_deployment_from_listing` | `references/catalog.md`, `references/mcp.md` |
 | Their own image (`ghcr.io/…:tag`) | CLI `musher deploy --image`; or, with the MCP tools, `create_component` → `create_blueprint` → `deploy_blueprint`; or the API with a blueprint | `references/deploy-own-app.md`, `references/mcp.md` |
 | Their own repository or Dockerfile, built and deployed | CLI `musher init` + `musher deploy` | `references/deploy-own-app.md` |
 | A multi-service app, or a change to a Catalog app | A blueprint | `references/blueprints.md` |
@@ -75,8 +76,9 @@ or the API instead.
    both ways in, then stop until one is ready:
    - connect Musher's MCP server, which signs in through the browser and needs no key
      (`references/mcp.md`, "Connect the server");
-   - or create an API key at https://console.musher.dev (your organization's **Settings → API Keys → Create API
-     Key**) and set it as `MUSHER_API_KEY` in this environment. A key is bound to one organization.
+   - or create an API key at https://console.musher.dev (**Organization settings → API keys**, with **API** as its
+     use; it takes the Owner or Admin role) and set it as `MUSHER_API_KEY` in this environment. A key is bound to one
+     organization and acts as the person who created it.
 2. **Organization.** `GET /v1/organizations` lists the caller's organizations in `data`; take the
    `id` the deploy paths need.
 3. **Balance.** Usage is prepaid. A new organization starts at $0, and a deploy it cannot cover returns
@@ -114,12 +116,8 @@ printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -fsS -X POST -H @- 
    `name` is lowercase letters, digits and hyphens, starting with a letter. The response is the deployment, already
    in `PROVISIONING`. A `422` lists every problem in `errors`, and nothing is created.
 5. **Wait for it:** poll `GET /v1/deployments/{id}` (the id is `metadata.id`) until `status.phase` is
-   `ACTIVE`. Then `GET /v1/organizations/{org}/deployments/{id}/endpoints` lists each endpoint. `publicUrl` holds the
+   `ACTIVE` and `status.readiness` is `READY`. Then `GET /v1/organizations/{org}/deployments/{id}/endpoints` lists each endpoint. `publicUrl` holds the
    bare hostname: put `publicScheme` and `://` in front of it. Report the URL and the hourly cost.
-
-**Known limit:** with an API key, `n8n`, `langfuse`, `librechat`, `metabase`, `label-studio` and `sim` can fail with
-`ERR_DEPLOYMENT_FACT_UNAVAILABLE`, because they need facts about a signed-in person. If that happens, give the user
-the Console route: **Catalog → Blueprints →** the app's card **→ Deploy**, then Configure, Review, Deploy.
 
 ## Deploy the user's own container
 

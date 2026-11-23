@@ -28,4 +28,5 @@ allowed_scopes = [
   "deps", # Dependabot; tool pins
   "docs", # README.md, AGENTS.md
   "repo", # Taskfile, .config/, .repo/, scripts/
+  "release", # release-please's release pull request: chore(release): release X.Y.Z
 ]

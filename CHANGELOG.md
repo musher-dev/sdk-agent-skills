@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2026-11-23)
 
 - MCP first. A session with Musher's MCP tools uses them and needs no `MUSHER_API_KEY`; the key is for the API and
   CLI routes. With neither, the skill offers both, and `references/mcp.md` tells the user how to connect the server
@@ -15,7 +15,7 @@
 - `blueprints.md` has a Contents list, and every reference over 100 lines must have one.
 - The curl examples send the key on standard input, so it never reaches a process list.
 
-## 0.2.0 (unreleased)
+## 0.2.0 (not tagged; shipped in 0.3.0)
 
 - `references/mcp.md`: the route for a session that has Musher's MCP tools. It gives the order that deploys your own
   image, how to read a validation answer and a placement that waits for a host, what an update does to a running
@@ -25,7 +25,7 @@
   `ACTIVE` and `READY`; `allowedActions` covers five actions; log severity is the stream; an MCP key is not an API
   key.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (not tagged; shipped in 0.3.0)
 
 - The `musher` skill. It deploys Catalog apps through the Musher API, deploys an image or a repository with
   `musher deploy`, writes v2 blueprints against the published schemas, operates deployments (status, URLs, logs,
