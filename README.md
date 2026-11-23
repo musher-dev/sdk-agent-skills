@@ -3,6 +3,8 @@
 Agent Skills and plugins that teach coding agents (Claude Code, Codex, Cursor, OpenClaw, Hermes Agent and others) to
 deploy and operate apps, containers and self-hosted AI tools on [Musher](https://musher.dev).
 
+Dependencies: [![engineering-conventions](https://github.com/musher-dev/sdk-agent-skills/raw/badges/engineering-conventions.svg)](https://github.com/musher-dev/sdk-agent-skills/tree/badges)
+
 With the `musher` skill installed, you can ask your agent to "host n8n for my team", "put Open WebUI with Ollama
 online" or "deploy this container on Musher". The agent then:
 

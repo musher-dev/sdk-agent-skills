@@ -1,15 +1,20 @@
 # Dependabot keeps the workflows' action pins current (DEPS-11). The CLIs in
 # .config/mise/config.toml have no Dependabot ecosystem and are raised by hand.
 # Every title is `build(deps): …`, which .config/commits/committed.toml accepts.
+#
+# The update runs monthly, waits a week after a release (cooldown) and groups
+# every action, so it opens at most one pull request a month (DEPS-17);
+# security updates ignore the schedule and arrive in a group of their own as
+# soon as an advisory does.
 version: 2
 
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     # A release gets a week before it is proposed, so a compromised one is
-    # more likely to be caught first.
+    # more likely to be caught first. Security updates bypass the cooldown.
     cooldown:
       default-days: 7
     commit-message:
@@ -17,4 +22,7 @@ updates:
       include: "scope"
     groups:
       actions:
+        patterns: ["*"]
+      actions-security:
+        applies-to: security-updates
         patterns: ["*"]
