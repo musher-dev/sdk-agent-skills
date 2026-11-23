@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/musher-dev/sdk-agent-skills/compare/v0.3.0...v0.3.1) (2026-11-23)
+
+
+### Features
+
+* **skill:** route Catalog deploys through MCP and close the backlog ([#15](https://github.com/musher-dev/sdk-agent-skills/issues/15)) ([9a9539a](https://github.com/musher-dev/sdk-agent-skills/commit/9a9539ae63ebaed4475a7f9ded6445543a5d29fb))
+
 ## 0.3.0 (2026-11-23)
 
 - MCP first. A session with Musher's MCP tools uses them and needs no `MUSHER_API_KEY`; the key is for the API and
