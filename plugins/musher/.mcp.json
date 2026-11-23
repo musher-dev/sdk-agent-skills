@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "musher": {
+      "type": "http",
+      "url": "https://mcp.musher.dev"
+    }
+  }
+}

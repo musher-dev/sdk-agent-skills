@@ -2,7 +2,7 @@
 
 There are two routes:
 
-- **The CLI.** One command, and it updates in place. It needs a CLI that has `deploy`.
+- **The CLI.** One command, and it updates in place. It needs musher CLI 0.4.1 or later.
 - **The API.** It works with any CLI, or none, but takes several calls.
 
 Check which one you have with `musher deploy --help`.
@@ -16,10 +16,20 @@ Check which one you have with `musher deploy --help`.
 
 ## The CLI route
 
-`deploy` and the other deploy commands are on musher-cli's `main` branch, and the next release will carry them. If
-`musher deploy --help` fails, the installed CLI is a 0.3.x release that cannot deploy. Use the API route, or ask the
-user whether to build the CLI from source (`go install github.com/musher-dev/musher-cli/cmd/musher@main`, which
-needs Go 1.26.10 or later). Don't install it without asking.
+`musher deploy`, `musher init` and `musher build` shipped in musher CLI 0.4.0. Use 0.4.1 or later: an older CLI can
+wait out its timeout on a deploy that has already failed. `musher version` prints the version (there is no
+`--version` flag).
+
+If `musher deploy --help` fails, the installed CLI is a bundle-era 0.3.x release that cannot deploy. Tell the user
+how to upgrade, and ask before you run it:
+
+- macOS, Linux or WSL: `curl -fsSL https://get.musher.dev | sh`. Running it again replaces the binary with the
+  latest release.
+- Windows, in PowerShell: `irm https://get.musher.dev/install.ps1 | iex`.
+- On 0.4.0 or later, `musher update` upgrades in place.
+- The steps are at https://docs.musher.dev/guides/deploy/install-the-cli.
+
+Or deploy without the CLI: through the MCP tools (`mcp.md`) or the API route below.
 
 With an image that's already pushed, pin it by digest or by a version tag:
 

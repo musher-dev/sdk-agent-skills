@@ -10,7 +10,9 @@
   with "API key is not valid for this API surface". Both kinds start with `mush_`, so the prefix does not tell
   them apart.
 - **The key goes in the environment, never in the chat or on a command line.** Read it from `MUSHER_API_KEY`. Send
-  it as `Authorization: Bearer $MUSHER_API_KEY`.
+  it as `Authorization: Bearer <key>` on curl's standard input, so it never appears in curl's arguments, where
+  other local processes can read it: `printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -H @- …`.
+  `printf` is a shell builtin, so it starts no process of its own.
 - **CLI precedence:** `--api-key`, then `MUSHER_API_KEY`, then the OS keyring, then the credentials file. Use the
   environment variable rather than `--api-key`: a flag ends up in shell history and process lists.
 - **Check the key:** `musher auth status --json`, or `GET /v1/organizations`. A `401` means the key is wrong or

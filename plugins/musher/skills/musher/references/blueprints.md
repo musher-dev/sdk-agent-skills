@@ -10,6 +10,14 @@ Both are YAML with `specVersion: v2`. Validate every document against its publis
 `:validate` operations, before you create anything. Don't hand-write a field you haven't seen in a schema or an
 example.
 
+## Contents
+
+- [Schemas](#schemas)
+- [A minimal component](#a-minimal-component)
+- [A blueprint with a database](#a-blueprint-with-a-database)
+- [A component and a blueprint the API accepts](#a-component-and-a-blueprint-the-api-accepts)
+- [Starting from a Catalog app](#starting-from-a-catalog-app)
+
 ## Schemas
 
 | Family | Schema (follows the latest v2 release) | Versions |

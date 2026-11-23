@@ -56,7 +56,8 @@ Retrying a write with the **same** `Idempotency-Key` within 24 hours returns the
    on `0.0.0.0`.
 4. **`ERR_DEPLOYMENT_FACT_UNAVAILABLE` on a Catalog app.** Some apps need facts about a signed-in person, which an API
    key doesn't carry. Give the user the Console route: Catalog → Blueprints → the app's card → Deploy.
-5. **`musher deploy` isn't a command.** The CLI is an older 0.3.x release. Use the API (`deploy-own-app.md`).
+5. **`musher deploy` isn't a command.** The CLI is an older 0.3.x release. Deploying needs 0.4.1 or later: offer the
+   upgrade and ask first, or use the MCP tools or the API (`deploy-own-app.md`).
 
 Don't loop on redeploys. If two attempts fail the same way, stop. Show the user the `detail`, the last error log lines
 and the `traceId`.

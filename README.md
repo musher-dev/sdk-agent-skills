@@ -26,17 +26,24 @@ Claude Code, as a plugin from this repository's marketplace:
 /plugin install musher --marketplace musher-dev/sdk-agent-skills
 ```
 
+The plugin also adds Musher's MCP server (`https://mcp.musher.dev`). It carries no key: run `/mcp` in Claude Code,
+choose the plugin's `musher` server and sign in through your browser. Claude Code names a plugin's tools with the
+plugin and server names in front, such as `mcp__plugin_musher_musher__get_deployment`.
+
 ## What you need
 
 - **A Musher account.** Sign up at [musher.dev](https://musher.dev).
-- **An API key, set as `MUSHER_API_KEY` in the agent's environment.** Create one at
-  [console.musher.dev](https://console.musher.dev): your organization's **Settings → API Keys**. Don't paste it into
-  the chat; the skill tells the agent never to ask for it.
+- **Musher's MCP server, or an API key.** With the server (`https://mcp.musher.dev`) connected, the agent signs in
+  through your browser and needs no key; [docs.musher.dev/agents](https://docs.musher.dev/agents) has the steps for
+  each agent. The API and the CLI routes need an API key, set as `MUSHER_API_KEY` in the agent's environment.
+  Create one at [console.musher.dev](https://console.musher.dev): your organization's **Settings → API Keys**. Don't
+  paste it into the chat; the skill tells the agent never to ask for it.
 - **A balance.** Usage is prepaid. An Owner or Admin adds funds in the Console under **Organization settings →
   Overview → Add funds**. Compute is billed only from the moment a deployment is healthy, and a deploy that fails
   first is never billed.
-- **For deploying your own code:** the `musher` CLI with its `deploy` command, Docker or BuildKit, and a container
-  registry to push to.
+- **For building and deploying your own code with the CLI:** the `musher` CLI 0.4.1 or later
+  ([install it](https://docs.musher.dev/guides/deploy/install-the-cli)), Docker or BuildKit, and a container registry
+  to push to. An image that is already pushed also deploys through the MCP tools or the API.
 
 ## What the skill covers
 

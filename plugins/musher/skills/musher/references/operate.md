@@ -1,6 +1,8 @@
 # Operating a deployment
 
-Every path below takes `Authorization: Bearer $MUSHER_API_KEY`. Send an `Idempotency-Key` header with every `POST`.
+Every path below takes `Authorization: Bearer <key>`, sent on standard input as SKILL.md shows
+(`printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -H @- …`). Send an `Idempotency-Key` header with
+every `POST`.
 The deployment id is `metadata.id` in any deployment response. To look one up by name, use
 `GET /v1/organizations/{org}/deployments:byName?name=<name>`.
 

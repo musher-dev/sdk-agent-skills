@@ -13,8 +13,8 @@ word of it literally, so an error here becomes their error, made confidently.
   - the CLI's source on the branch its release carries (`musher-dev/musher-cli`);
   - the specifications (https://specifications.musher.dev);
   - the public docs (https://docs.musher.dev);
-  - for `references/mcp.md`, the MCP server's own `tools/list` and what a call returned. Say which release you
-    observed, and write "in one run" for anything you saw once.
+  - for `references/mcp.md`, the MCP server's own `tools/list` and what a call returned. Don't pin the page to a
+    release; state the behaviour, and write "in one run" for anything you saw once.
 
   Don't copy anything from memory or from another vendor's skill.
 - **No prices in the text.** Every rate is a launch rate (`rateStatus: PLACEHOLDER`). The skill tells the agent to
@@ -31,15 +31,15 @@ word of it literally, so an error here becomes their error, made confidently.
 
 | Gap | Where the skill says it | Remove when |
 | --- | --- | --- |
-| No released CLI has `deploy`: 0.3.x is bundle-era (musher-cli #96) | SKILL.md, `deploy-own-app.md`, `troubleshoot.md` | A release with `deploy` ships, and the installer works |
 | API keys can't deploy n8n, Langfuse, LibreChat, Metabase, Label Studio and Sim (platform-api #1434) | SKILL.md, `catalog.md`, `troubleshoot.md` | #1434 is fixed |
-| MCP is behind an entitlement that no plan grants | `mcp.md` covers a session that already has the tools, as observed on release 27.0.1; the plugin ships no `.mcp.json` | MCP is available on a plan. Then add `.mcp.json` (`https://mcp.musher.dev`, OAuth), and check `mcp.md` against the released server |
 
 ## Checks
 
 `task check` runs what CI runs:
 
 - `scripts/check_skill.py`: size, links, and that the manifests agree;
+- `scripts/check_mcp_tools.py`: that every MCP tool and toolset the skill names is still on the server, read from
+  the public tool reference at https://docs.musher.dev/agents/tools (not yet a step in the Validate workflow);
 - the Agent Skills reference validator;
 - the skills CLI's own discovery;
 - actionlint and zizmor;

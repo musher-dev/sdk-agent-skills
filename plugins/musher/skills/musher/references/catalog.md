@@ -46,9 +46,8 @@ From the listing, keep `id`, `itemType`, `blueprintId` and `blueprintVersion`.
 ## Deploying
 
 ```bash
-curl -fsS -X POST \
+printf 'Authorization: Bearer %s\n' "$MUSHER_API_KEY" | curl -fsS -X POST -H @- \
   "https://api.musher.dev/v1/organizations/$ORG_ID/deployments:cloneFromListing" \
-  -H "Authorization: Bearer $MUSHER_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"listingId": "<id>", "name": "<name>", "parameters": {}}'
