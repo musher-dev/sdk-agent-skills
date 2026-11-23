@@ -54,7 +54,7 @@ no commands for these actions; use the API, or the deployment's page in the Cons
   URL. An unchanged file does nothing; `--force` rolls it anyway.
 - **A blueprint you own, through the API:** create and publish the next revision, then
   `POST /v1/deployments/{id}:update` with `{"revision": <n>}`. An update gives every node a new replica, changed
-  or not, and a node with a volume is down for three to four minutes while the volume moves. Put your changes in
+  or not, and a node with a volume is down while the volume detaches and attaches again, which can take minutes. Put your changes in
   one revision, and tell the user before you send it.
 - **A Catalog app:** change it in the Console. Copying it into the organization's library first
   (`POST /v1/organizations/{org}/blueprints:cloneFromListing`) makes it a blueprint you own (`blueprints.md`).

@@ -15,6 +15,7 @@ prefix: Claude Code shows `mcp__musher__get_deployment` for a server added as `m
 - [Connect the server](#connect-the-server)
 - [What the server is](#what-the-server-is)
 - [Toolsets](#toolsets)
+- [Deploy a Catalog app, in order](#deploy-a-catalog-app-in-order)
 - [Deploy your own image, in order](#deploy-your-own-image-in-order)
 - [Read a validation answer](#read-a-validation-answer)
 - [Choose a compute profile that places](#choose-a-compute-profile-that-places)
@@ -68,6 +69,26 @@ The server groups its tools into toolsets. Each tool names its own in `_meta` un
   still missing after a search may be one their role withholds: say so, rather than working around it.
 
 The public list of every tool, by toolset, is at https://docs.musher.dev/agents/tools.
+
+## Deploy a Catalog app, in order
+
+1. `list_organizations`, so you know the organization the tools act in.
+2. Find the listing. When the user names the app, `get_catalog_listing_by_slug` with its `slug` (`n8n`); when the
+   name is approximate, `search_catalog_listings` with `q`. Only a `BLUEPRINT` listing deploys on its own. Keep its
+   `id`, `blueprintId` and `blueprintVersion`.
+3. `get_catalog_listing_cost_estimate` with `listing_id`. It covers compute only, and `rateStatus: PLACEHOLDER` marks a
+   launch rate. Tell the user the hourly figure, and that storage is billed apart, then wait for a yes (rule 2 in
+   SKILL.md).
+4. `get_blueprint_version_deploy_form` with `blueprint_id` and the listing's `blueprintVersion` as `revision`. Ask
+   only for required fields that have no default. Generated secrets and organization variables are not fields.
+5. `clone_deployment_from_listing` with `body.listingId`, `body.name` (lowercase letters, digits and hyphens,
+   starting with a letter), any `body.parameters`, and an `idempotencyKey`. A refusal lists every problem, and
+   nothing is created.
+6. Poll `get_deployment` until `status.phase` is `ACTIVE` and `status.readiness` is `READY`, then build the URL from
+   `status.endpoints[]` as step 7 below does.
+
+To change the app before it deploys, copy it into the organization's library with `clone_blueprint_from_listing`, and
+deploy the copy with `deploy_blueprint`.
 
 ## Deploy your own image, in order
 

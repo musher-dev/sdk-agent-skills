@@ -29,9 +29,11 @@ word of it literally, so an error here becomes their error, made confidently.
 
 ## Known gaps the skill states, and removes once they're fixed
 
+None today. When the platform has a gap the skill must state, add a row here with where the skill says it and
+what removes it:
+
 | Gap | Where the skill says it | Remove when |
 | --- | --- | --- |
-| API keys can't deploy n8n, Langfuse, LibreChat, Metabase, Label Studio and Sim (platform-api #1434) | SKILL.md, `catalog.md`, `troubleshoot.md` | #1434 is fixed |
 
 ## Checks
 

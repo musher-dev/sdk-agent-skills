@@ -14,7 +14,7 @@ Quote `detail` to the user. Keep `traceId`: Musher support needs it.
 | --- | --- | --- |
 | `401` | The key is missing, wrong or revoked, or it is an MCP key ("not valid for this API surface") | Ask the user to check `MUSHER_API_KEY`. Never ask them to paste it |
 | `402` | The balance can't cover the deploy | An Owner or Admin adds funds (`auth-and-billing.md`). Don't retry until then |
-| `403` | The key lacks a permission, or the plan lacks a feature (`entitlement-required`) | Tell the user what `detail` says. Don't work around it |
+| `403` | The key lacks a permission, the plan lacks a feature (`entitlement-required`), or the key's creator is no longer in good standing (`api-key-creator-not-in-good-standing`) | Tell the user what `detail` says. Don't work around it |
 | `404` | The id is wrong, or the resource belongs to another organization | Re-read the id from a list call |
 | `409` | A name is already taken, a revision conflicts, or a `COMPONENT` listing was sent to a deploy path | Choose another name, re-read and retry, or use a blueprint |
 | `422` | The request or the blueprint doesn't resolve | Every problem is in `errors`; nothing was created. Fix them all, then send it again |
@@ -54,8 +54,12 @@ Retrying a write with the **same** `Idempotency-Key` within 24 hours returns the
 3. **`DEGRADED`, or `ACTIVE` with an endpoint that isn't serving.** Read the `RUNTIME` logs at `ERROR`. The most common
    cause is an app listening on a port other than the endpoint's `targetPort`, or only on `127.0.0.1`. It must listen
    on `0.0.0.0`.
-4. **`ERR_DEPLOYMENT_FACT_UNAVAILABLE` on a Catalog app.** Some apps need facts about a signed-in person, which an API
-   key doesn't carry. Give the user the Console route: Catalog → Blueprints → the app's card → Deploy.
+4. **`403 api-key-creator-not-in-good-standing` or `ERR_DEPLOYMENT_FACT_UNAVAILABLE`.** An API key deploys as the
+   person who created it, and an app that reads facts about its creator (`creatorFacts` on the deploy form) gets
+   them from that person. `api-key-creator-not-in-good-standing` means the key's creator was deactivated, removed
+   from the organization or holds no role in it: an Owner or Admin creates a new key (`auth-and-billing.md`).
+   `ERR_DEPLOYMENT_FACT_UNAVAILABLE` means the deploying person lacks a fact the app reads. Quote `detail` and the
+   `traceId`; don't retry with another name or a guessed value.
 5. **`musher deploy` isn't a command.** The CLI is an older 0.3.x release. Deploying needs 0.4.1 or later: offer the
    upgrade and ask first, or use the MCP tools or the API (`deploy-own-app.md`).
 
