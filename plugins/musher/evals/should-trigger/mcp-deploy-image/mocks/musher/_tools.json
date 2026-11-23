@@ -1,0 +1,782 @@
+{
+  "tools": [
+    {
+      "name": "create_blueprint",
+      "title": "Create a new blueprint from scratch",
+      "description": "Create a new blueprint (app) in an organization's library, holding its first draft. A blueprint is an app: the components it runs, how they connect, and the compute and exposure each gets. The smallest draft is a document with specVersion v2, kind BLUEPRINT, metadata.revision 1 and an empty spec.nodes map; then add components one at a time with attach_blueprint_version_component, give each node compute (set_blueprint_version_compute), parameters and input bindings, and any PUBLIC endpoint. Omit the slug and a friendly adjective-noun name is minted into the stored document; a given slug must be new to the library (an existing blueprint takes a new draft with create_blueprint_version). Components are named by their UUID and revision. A document the schema accepts is stored even when a semantic rule fails: the returned validation names what keeps it from publishing. Nothing is deployed or billed. To copy an app from the catalog instead, use clone_blueprint_from_listing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST /v1/organizations/{organization_id}/blueprints. document is any JSON object, judged by the apply pipeline rather than refused by the request — the one document body that is. Creation is where the blueprint is *named*, and a caller who names it nowhere is given a minted slug, which the platform writes into the document before it validates it. A typed body could not express that: the released bundle requires metadata.slug, so the typed view mirrors it and would 422 the slug-less document at the boundary, before anything could mint one. The bundle still judges it a moment later, in the structural phase, and the same diagnostics come back.",
+            "properties": {
+              "document": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "The blueprint v2 document of the first version, as JSON. Its metadata.revision is the revision the draft is created at; its components are named by published UUID and revision. Its metadata.slug may be omitted, and is then the slug above or a minted one."
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "DNS-label name of the blueprint, new to the organization's library. Defaults to the document's metadata.slug, which must equal it; a friendly name is minted when neither is given.",
+                "maxLength": 63,
+                "pattern": "^[a-z][a-z0-9-]{0,61}[a-z0-9]$"
+              }
+            },
+            "required": [
+              "document"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Create a new blueprint from scratch",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_component",
+      "title": "Create a component from a container image",
+      "description": "Create a component from a container image, from scratch: a new service, worker or job in the organization's library, holding its first draft. The workload's source is a container image (spec.workload.source.image; a bare name:tag is valid) or a Git repository the platform builds. A minimal service document has specVersion v2, kind COMPONENT, metadata with revision 1 and a one-sentence description, and a spec with type SERVICE, the workload source and one endpoint (targetPort and protocol). Each environment variable the container reads is an input in spec.contract.inputs with target.envVar; a secret input is sensitive: true. A document the schema accepts is stored even when a semantic rule fails; the returned validation names what blocks publishing. Check it first with validate_component; publish it with publish_component_version. To copy a catalog app's component instead, use clone_component_from_listing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST /v1/organizations/{organization_id}/components.",
+            "properties": {
+              "document": {
+                "type": "object",
+                "description": "The component v2 document of the first version. Its metadata.revision is the revision the draft is created at."
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "DNS-label name of the component, new to the organization's library. When omitted, a friendly adjective-noun name is minted that the library does not hold yet; rename it later with update_component while nothing is released.",
+                "maxLength": 63,
+                "pattern": "^[a-z][a-z0-9-]{0,61}[a-z0-9]$"
+              }
+            },
+            "required": [
+              "document"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Create a component from a container image",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "deploy_blueprint",
+      "title": "Deploy an app from your own blueprint",
+      "description": "Deploy, launch or start an app from a blueprint the organization owns: creates a new deployed app from one published revision and starts provisioning it. Billing starts once the app first comes up healthy (ACTIVE) and covers only the hours it runs; a refused deploy creates nothing, and an app that fails before it first runs is never billed. The revision must be published first (publish_blueprint_version); read its deploy form (get_blueprint_version_deploy_form) for the parameters it takes. The name must be DNS-compliant and unique in the organization. When the inputs do not resolve, nothing is created and the error lists every problem. On success the app is returned in PROVISIONING, or in DRAFT while components built from git sources are fetched, built and verified (follow them with get_deployment_sources); it then provisions on its own. Poll get_deployment until its phase settles. An app straight from the catalog is deployed with clone_deployment_from_listing instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST …/deployments:deployBlueprint — deploy one revision of your Blueprint.",
+            "properties": {
+              "blueprintId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Identifier of the caller's own Blueprint."
+              },
+              "connections": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "description": "One whole connection: one the organization configured, or an external endpoint.",
+                  "properties": {
+                    "connectionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid",
+                      "description": "Identifier of a connection the organization configured: an LLM connection, or a database, cache or object-store connection."
+                    },
+                    "external": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "description": "An external endpoint supplied in full."
+                    }
+                  }
+                },
+                "description": "Whole replacements for connection parameters, keyed by parameter name: either one of the organization's configured connections ({connectionId}: an LLM connection, or a database, cache or object-store connection of the protocol the parameter needs) or, for a language model, an external endpoint ({external: {baseURL, apiKey, model, protocol}}). Omit a parameter to use the connection at its path."
+              },
+              "environmentId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid",
+                "description": "Identifier of the environment this deployment targets. Omit to use the organization's default environment."
+              },
+              "name": {
+                "type": "string",
+                "description": "DNS-compliant name for this deployed app, unique within the organization. Must match ^[a-z][a-z0-9-]{0,61}[a-z0-9]$.",
+                "pattern": "^[a-z][a-z0-9-]{0,61}[a-z0-9]$"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "Submitted parameter values keyed by parameter name, each a logical JSON value the receiving inputs' schemas validate. Generated and variable- or connection-sourced parameters are never submitted; an unknown or misspelled name is rejected."
+              },
+              "replicas": {
+                "type": "integer",
+                "description": "Desired number of running instances of every node that runs. Defaults to 1. A node that mounts a non-shared volume runs one instance at a time, so a deployment of one cannot scale past 1.",
+                "default": 1,
+                "minimum": 1,
+                "maximum": 1000
+              },
+              "revision": {
+                "type": "integer",
+                "description": "Published revision of that Blueprint to deploy.",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "blueprintId",
+              "name",
+              "revision"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Deploy an app from your own blueprint",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_blueprint_version_deploy_form",
+      "title": "Get the deploy form of a blueprint revision",
+      "description": "Get the deploy form of one blueprint revision: the parameters a person fills in to deploy the app, in display order, with each field's label, type and default when it declares one. Generated secrets and organization variables are filled by the platform and are not fields; a connection parameter is one field choosing a whole connection. creatorFacts names the facts about the deploying person the app receives. Use it before deploy_blueprint to know which values to ask for.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "blueprint_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision: the document's metadata.revision.",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "blueprint_id",
+          "revision"
+        ]
+      },
+      "annotations": {
+        "title": "Get the deploy form of a blueprint revision",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_compute_profile_pricing",
+      "title": "Get a compute profile's price",
+      "description": "Read the current price (cost, rate) of one compute profile by its slug: the effective hourly rate, a 730-hour monthly estimate, and the per-component price entries, as decimal strings in the response currency (usd).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "annotations": {
+        "title": "Get a compute profile's price",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_blueprints",
+      "title": "List and search an organization's blueprints",
+      "description": "List, search and filter the blueprints (apps) in an organization's library, one row per blueprint. Use it to find the app a person means by name, or to resolve a slug from a console address to the blueprint's id. Each row carries the current, latest-published and open-draft revisions, so it also says which revision is editable and which can be deployed. Search, filters (status of the current revision, has a published version, has a draft, author=me for the open draft) and sort run over the whole library before the page is cut; page on with the cursor in meta. For platform-curated apps, use list_curated_blueprints or search_catalog_listings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only blueprints whose open draft the authenticated user wrote ('me'). Always me"
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque pagination cursor."
+          },
+          "has_draft": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether a draft is open."
+          },
+          "has_published_version": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether any version is published."
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "search": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Case-insensitive substring of the blueprint slug. Lowercased before it is validated, so SHOP matches shop."
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Exact blueprint slug. The list then holds at most one blueprint, so it resolves a slug to its blueprint id.",
+            "pattern": "^[a-z0-9-]{1,63}$"
+          },
+          "sort": {
+            "type": "string",
+            "description": "UPDATED_AT (most recent activity first), UPDATED_AT_ASC (least recent activity first), SLUG (alphabetical, A to Z) or SLUG_DESC (Z to A). A cursor is valid only with the sort that produced it.",
+            "enum": [
+              "UPDATED_AT",
+              "UPDATED_AT_ASC",
+              "SLUG",
+              "SLUG_DESC"
+            ],
+            "default": "UPDATED_AT"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Status of the current version.",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "WITHDRAWN"
+            ]
+          }
+        }
+      },
+      "annotations": {
+        "title": "List and search an organization's blueprints",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_components",
+      "title": "List and search an organization's components",
+      "description": "List, search and filter the components (services, workers and jobs) in an organization's library, one row per component. Use it to find a component to add to a blueprint, or to resolve a slug from a console address to the component's id. Each row carries the current, latest-published and open-draft revisions. Filters cover status, type, validation result, whether a published version or draft exists, and author; page on with the cursor in meta. For platform-curated components, use list_curated_components or search_catalog_listings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only components whose open draft the caller wrote ('me'). Always me"
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque pagination cursor."
+          },
+          "has_draft": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether a draft is open."
+          },
+          "has_published_version": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether any revision is published."
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "search": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Case-insensitive substring of the component slug."
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Exact component slug: resolves a slug to its component.",
+            "pattern": "^[a-z0-9-]{1,63}$"
+          },
+          "sort": {
+            "type": "string",
+            "description": "UPDATED_AT (most recent activity first), UPDATED_AT_ASC (least recent activity first), SLUG (alphabetical, A to Z) or SLUG_DESC (Z to A). A cursor is valid only with the sort that produced it.",
+            "enum": [
+              "UPDATED_AT",
+              "UPDATED_AT_ASC",
+              "SLUG",
+              "SLUG_DESC"
+            ],
+            "default": "UPDATED_AT"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Status of the current revision.",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "DEPRECATED",
+              "WITHDRAWN"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The current revision's spec.type.",
+            "enum": [
+              "SERVICE",
+              "WORKER",
+              "JOB",
+              "EXTERNAL"
+            ]
+          },
+          "validation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The current revision's last validation: VALID, INVALID or INCOMPLETE.",
+            "enum": [
+              "VALID",
+              "INVALID",
+              "INCOMPLETE"
+            ]
+          }
+        }
+      },
+      "annotations": {
+        "title": "List and search an organization's components",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_compute_profiles",
+      "title": "List compute profiles",
+      "description": "List the compute profiles (machine sizes, CPU, memory and GPU shapes) a workload may request, optionally filtered by family such as general or gpu. A profile's slug, {family}.{tier}.{size}, is what a blueprint node's compute profile names (set it with set_blueprint_version_compute). Availability in a region is decided at deploy time.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "family": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional family filter, such as general or gpu.",
+            "enum": [
+              "GENERAL",
+              "COMPUTE",
+              "MEMORY",
+              "STORAGE",
+              "GPU",
+              "ACCELERATOR"
+            ]
+          }
+        }
+      },
+      "annotations": {
+        "title": "List compute profiles",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_deployments",
+      "title": "List the organization's deployed apps",
+      "description": "List, browse, find or search the organization's deployed apps, a page at a time (pass meta.nextCursor back as cursor). Filter by lifecycle status, by the catalog listing or category an app came from, by environment, by a substring of the name (search) or by needs_attention for apps that are failing, degraded or unreachable; sort by creation, name or last change. Each row carries the app's phase, standing and public addresses. Use get_deployment_summary for counts only, and get_deployment for one app's full detail.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Filter to deployments cloned from a catalog listing in this category, such as DATABASE. An unknown category returns an empty page.",
+            "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "environment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Filter to deployments targeting this environment."
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "needs_attention": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "true keeps only the deployments that need attention (FAILED, DEGRADED, a public endpoint whose edge route an operator disabled, provisioning for more than 30 minutes, or a draft left for more than a day), the ones status.standing.needsAttention marks and the summary's needsAttentionCount counts; false keeps the rest."
+          },
+          "search": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Case-insensitive substring of the deployment's name. Lowercased before it is validated, so SHOP matches shop."
+          },
+          "sort": {
+            "type": "string",
+            "description": "CREATED_AT (newest first), NAME (A to Z), NAME_DESC (Z to A), UPDATED_AT (most recently changed first), UPDATED_AT_ASC (least recently changed first) or ATTENTION (those needing attention first, most urgent and most recent first, then the rest by their last change; it ranks live deployments only, so a status filter naming DELETED is refused with 422). A cursor is valid only with the sort and filters that produced it.",
+            "enum": [
+              "CREATED_AT",
+              "NAME",
+              "NAME_DESC",
+              "UPDATED_AT",
+              "UPDATED_AT_ASC",
+              "ATTENTION"
+            ],
+            "default": "CREATED_AT"
+          },
+          "source_catalog_listing_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "annotations": {
+        "title": "List the organization's deployed apps",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_organizations",
+      "title": "List my organizations",
+      "description": "List the organizations (workspaces, teams) the caller belongs to, with the caller's membership in each, a page at a time. Start here: most other tools take an organization id from this list. An AI client, connected over OAuth or with an MCP key, sees only the one organization it was authorized in, and an API key only its own.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination cursor from previous response"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "annotations": {
+        "title": "List my organizations",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "publish_blueprint_version",
+      "title": "Publish a blueprint draft",
+      "description": "Publish a blueprint's open draft, making it the app's current version and the revision a deployment can run. The document is frozen: later changes need a new draft. The draft must be fully valid for publication: every node has what it needs, every component it names resolves to a published revision (publish an organization component first with publish_component_version), it has a description, and its revision exceeds every published one. Anything short of VALID is refused with the diagnostics; check first with get_blueprint_version. Older published revisions stay published, and running deployments keep the revision they run. Deploy the result with deploy_blueprint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "blueprint_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision: the document's metadata.revision.",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "blueprint_id",
+          "revision"
+        ]
+      },
+      "annotations": {
+        "title": "Publish a blueprint draft",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "publish_component_version",
+      "title": "Publish a component draft",
+      "description": "Publish a component's draft revision, freezing its document so blueprints can pin it: a blueprint that uses the component can only publish, and so deploy, once the revision it pins is published. The document is judged for publication first; a failure is refused with every diagnostic, including a revision that does not exceed one already published. Check first with get_component_version, whose publicationValidation is VALID exactly when this call would succeed. Cannot be undone; later changes need a new revision (create_component_version).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,128}$"
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision: the document's metadata.revision.",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "component_id",
+          "revision"
+        ]
+      },
+      "annotations": {
+        "title": "Publish a component draft",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "validate_blueprint",
+      "title": "Check a blueprint document without saving it",
+      "description": "Validate (lint, check) a blueprint document without storing anything. Returns VALID, INVALID or INCOMPLETE with every diagnostic, stopping at the first phase that fails: STRUCTURAL checks the parser and schema; DOCUMENT adds the semantic rules, resolving the published components the document names; PUBLICATION adds what a publish decides from the document (a description, at least one node) and reports platform admission deferred, so its best answer is INCOMPLETE; DEPLOYMENT also defers deployment resolution. Once the semantic rules pass, what a deploy would refuse is previewed as WARNING diagnostics that never change the status. Pass within to validate against a stored blueprint version, so components copied beside it resolve as on publish. Use it before create_blueprint or replace_blueprint_version.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST /v1/organizations/{organization_id}/blueprints:validate. document is any JSON object: a document the schema rejects is reported in the result, not refused by the request.",
+            "properties": {
+              "document": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "The blueprint v2 document to validate, as JSON."
+              },
+              "scope": {
+                "type": "string",
+                "description": "The validation obligations to judge it under: PARSER, STRUCTURAL, DOCUMENT (the default), PUBLICATION or DEPLOYMENT. Publication's admission checks are reported deferred.",
+                "enum": [
+                  "PARSER",
+                  "STRUCTURAL",
+                  "DOCUMENT",
+                  "PUBLICATION",
+                  "DEPLOYMENT"
+                ],
+                "default": "DOCUMENT"
+              },
+              "within": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "The stored blueprint version to validate the document in. Its repo-local components are read from that version, so the verdict matches a draft write and publish. Omitted, the document has no item, and its item rules and repo-local components are reported deferred.",
+                "properties": {
+                  "blueprintId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "The blueprint lineage the document belongs to."
+                  },
+                  "revision": {
+                    "type": "integer",
+                    "description": "The version whose stored component documents the document's repo-local componentRefs name.",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "blueprintId",
+                  "revision"
+                ]
+              }
+            },
+            "required": [
+              "document"
+            ]
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Check a blueprint document without saving it",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "validate_component",
+      "title": "Check a component document without saving it",
+      "description": "Validate (lint, check) a component document without storing anything, before create_component or replace_component_version. Returns VALID, INVALID or INCOMPLETE with every diagnostic, each pointing at the member to fix, stopping at the first phase that fails: STRUCTURAL checks the parser and schema; DOCUMENT adds the semantic rules; PUBLICATION adds what a publish decides (a description, a workload and what its type requires) and reports the revision rule and platform admission deferred, so its best answer is INCOMPLETE; DEPLOYMENT also defers deployment resolution. Once the semantic rules pass, a probe on an HTTPS endpoint whose certificate can never verify is previewed as a WARNING: it never changes the status, but every deploy of the component is refused until it is fixed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "Body for POST /v1/organizations/{organization_id}/components:validate. document is any JSON object: a document the schema rejects is reported in the result, not refused by the request.",
+            "properties": {
+              "document": {
+                "type": "object",
+                "additionalProperties": {},
+                "description": "The component v2 document to validate, as JSON."
+              },
+              "scope": {
+                "type": "string",
+                "description": "The validation obligations to judge it under: PARSER, STRUCTURAL, DOCUMENT (the default), PUBLICATION or DEPLOYMENT. Without a component's history, PUBLICATION reports its revision rule deferred.",
+                "enum": [
+                  "PARSER",
+                  "STRUCTURAL",
+                  "DOCUMENT",
+                  "PUBLICATION",
+                  "DEPLOYMENT"
+                ],
+                "default": "DOCUMENT"
+              }
+            },
+            "required": [
+              "document"
+            ]
+          }
+        },
+        "required": [
+          "body"
+        ]
+      },
+      "annotations": {
+        "title": "Check a component document without saving it",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}
