@@ -20,7 +20,7 @@ compatibility: >-
   0.4.1 or later, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
-  version: "0.3.0"
+  version: "0.3.0" # x-release-please-version
   homepage: https://docs.musher.dev/
 ---
 
