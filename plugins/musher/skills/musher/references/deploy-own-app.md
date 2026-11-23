@@ -23,11 +23,9 @@ wait out its timeout on a deploy that has already failed. `musher version` print
 If `musher deploy --help` fails, the installed CLI is a bundle-era 0.3.x release that cannot deploy. Tell the user
 how to upgrade, and ask before you run it:
 
-- macOS, Linux or WSL: `curl -fsSL https://get.musher.dev | sh`. Running it again replaces the binary with the
-  latest release.
-- Windows, in PowerShell: `irm https://get.musher.dev/install.ps1 | iex`.
 - On 0.4.0 or later, `musher update` upgrades in place.
-- The steps are at https://docs.musher.dev/guides/deploy/install-the-cli.
+- Otherwise, send the user to https://docs.musher.dev/guides/deploy/install-the-cli, which has the installer for
+  macOS, Linux, WSL and Windows. Don't pipe a downloaded script into a shell yourself.
 
 Or deploy without the CLI: through the MCP tools (`mcp.md`) or the API route below.
 
