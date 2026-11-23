@@ -11,6 +11,9 @@
 - skills.sh.json points at the directory the skill is in.
 - A reference over 100 lines opens with a `## Contents` list that links every
   other `##` section, so a model that stops partway knows what the rest holds.
+- The skill, its references and its eval graders state no dollar amount in
+  prose (AGENTS.md: no prices in the text). The skill tells the agent where to
+  read the live figure.
 - Every `metadata` value is a string, as the Agent Skills specification
   defines it: one `key: value` line, with no nested mapping or list, and no
   value YAML would read as a number, a boolean or null.
@@ -91,6 +94,26 @@ def contents_problems(path: Path) -> list[str]:
     ]
 
 
+#: A dollar sign followed by a digit, outside code: a typed amount.
+_AMOUNT = re.compile(r"\$\d")
+_INLINE_CODE = re.compile(r"`[^`]*`")
+
+
+def amount_problems(path: Path) -> list[str]:
+    """Prose states no dollar amount; a shell `$1` inside code is not one."""
+    problems = []
+    fenced = False
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if not fenced and _AMOUNT.search(_INLINE_CODE.sub("", line)):
+            problems.append(
+                f"{path.relative_to(ROOT)}:{number} states a dollar amount; say where the live figure is read"
+            )
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
     text = SKILL.read_text(encoding="utf-8")
@@ -120,6 +143,10 @@ def main() -> int:
 
     for path in sorted((SKILL_DIR / "references").glob("*.md")):
         problems += contents_problems(path)
+
+    prose = [SKILL, *sorted((SKILL_DIR / "references").glob("*.md")), *sorted((PLUGIN / "evals").rglob("*.md"))]
+    for path in prose:
+        problems += amount_problems(path)
 
     version = re.search(r'^\s+version: "([^"]+)"$', block, re.M)
     plugin = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))

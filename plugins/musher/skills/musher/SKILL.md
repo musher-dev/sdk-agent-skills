@@ -20,7 +20,7 @@ compatibility: >-
   0.4.1 or later, Docker or BuildKit, and a container registry to push to.
 metadata:
   author: musher-dev
-  version: "0.3.0"
+  version: "0.3.1"
   homepage: https://docs.musher.dev/
 ---
 
@@ -79,9 +79,10 @@ or the API instead.
      Key**) and set it as `MUSHER_API_KEY` in this environment. A key is bound to one organization.
 2. **Organization.** `GET /v1/organizations` lists the caller's organizations in `data`; take the
    `id` the deploy paths need.
-3. **Balance.** Usage is prepaid. A new organization starts at $0, and a deploy it cannot cover returns
+3. **Balance.** Usage is prepaid. A new organization starts with no balance, and a deploy it cannot cover returns
    `402 payment-required`. Then tell the user that an Owner or Admin must add funds in the Console: the organization
-   selector, **Organization settings → Overview → Add funds** (minimum $10, by card). You cannot do it for them.
+   selector, **Organization settings → Overview → Add funds** (by card; the dialog states the minimum). You cannot do it
+   for them.
 
 Send the key on standard input with `-H @-`, never as an argument: `printf` is a shell builtin, so the key never
 reaches a process list. Standard input then carries the header, so give a body with `-d '…'`, not `-d @-`.

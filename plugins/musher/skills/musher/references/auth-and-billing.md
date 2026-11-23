@@ -30,11 +30,12 @@ organization's `id`.
 
 ## Billing
 
-- **Usage is prepaid.** A new organization starts with a balance of $0. Musher may grant promotional credits, which
+- **Usage is prepaid.** A new organization starts with no balance. Musher may grant promotional credits, which
   are spent first.
 - **A deploy the balance can't cover is refused with `402 payment-required`, and nothing is created.** Only an Owner
   or Admin can add funds, in the Console: open the organization selector, then **Organization settings → Overview →
-  Add funds**. The minimum is $10, by card. Auto-recharge can be turned on in the same dialog. An agent can't pay.
+  Add funds**. The dialog states the minimum top-up, and payment is by card. Auto-recharge can be turned on in the
+  same dialog. An agent can't pay.
 - **Compute** is billed per hour per replica. Billing starts when the deployment first reaches `ACTIVE`, and covers
   only the hours it runs. A refused deploy creates nothing, and a deployment that fails before it first runs is never
   billed.
