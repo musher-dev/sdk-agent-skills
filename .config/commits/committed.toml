@@ -23,7 +23,7 @@ allowed_types = [
 
 allowed_scopes = [
   "skill", # plugins/musher/skills/**
-  "plugin", # .claude-plugin/, plugins/musher/.claude-plugin/, skills.sh.json
+  "plugin", # .claude-plugin/, .cursor-plugin/, plugins/musher/.{claude,cursor}-plugin/, skills.sh.json
   "ci", # .github/workflows/**
   "deps", # Dependabot; tool pins
   "docs", # README.md, AGENTS.md

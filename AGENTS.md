@@ -46,8 +46,8 @@ what removes it:
 
 - `scripts/check_skill.py`: size, links, that the manifests agree, and that `version.txt`, `plugin.json` and the
   skill's `metadata.version` carry one version;
-- `scripts/check_mcp_tools.py`: that every MCP tool and toolset the skill names is still on the server, read from
-  the public tool reference at https://docs.musher.dev/agents/tools;
+- `scripts/check_mcp_tools.py`: that every MCP tool and toolset the skill names, and every tool the evals mock or
+  grade, is still on the server, read from the public tool reference at https://docs.musher.dev/agents/tools;
 - the Agent Skills reference validator;
 - the skills CLI's own discovery;
 - actionlint and zizmor;

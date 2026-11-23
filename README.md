@@ -102,7 +102,10 @@ idempotency keys with every write, and asks you before anything that bills.
 | `plugins/musher/.claude-plugin/plugin.json` | The Claude Code plugin |
 | `plugins/musher/.mcp.json` | Musher's MCP server, which the plugin adds |
 | `plugins/musher/evals/` | Trigger and behaviour evals for `claude plugin eval`, with mocked MCP tools |
+| `plugins/musher/.cursor-plugin/plugin.json` | The same plugin, for Cursor |
+| `plugins/musher/README.md` | The plugin's own README: what it contains, and what it sends and where |
 | `.claude-plugin/marketplace.json` | The marketplace that lists the plugin |
+| `.cursor-plugin/marketplace.json` | The same marketplace, for Cursor and cursor.directory |
 | `skills.sh.json` | Where the skills CLI finds the skill |
 | `.github/release-please/`, `version.txt` | The release configuration and the current version |
 | `scripts/` | Repository tooling: the Catalog index generator and the skill checks. Not shipped to agents |
@@ -126,4 +129,5 @@ publishes `vX.Y.Z`.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE), for this repository's code and text. The Musher name and logo, including the plugin icon
+(`plugins/musher/.claude-plugin/icon.png`), are Musher's own marks and aren't licensed under it.
