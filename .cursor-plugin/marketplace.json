@@ -1,0 +1,16 @@
+{
+  "name": "musher",
+  "owner": {
+    "name": "Musher"
+  },
+  "metadata": {
+    "description": "Musher's plugins for coding agents: deploy and operate apps, containers and self-hosted AI tools on Musher."
+  },
+  "plugins": [
+    {
+      "name": "musher",
+      "source": "plugins/musher",
+      "description": "Deploy and operate apps, containers and Catalog tools (n8n, Open WebUI, LiteLLM, OpenClaw and more) on Musher."
+    }
+  ]
+}

@@ -6,9 +6,10 @@
 - SKILL.md stays under 500 lines, and its description under 1024 characters.
 - Every `references/<file>.md` the skill names exists, and every reference
   file is named by SKILL.md, so none is unreachable.
-- version.txt, the plugin's version and the skill's metadata.version are one
-  version, and the metadata.version line carries the `x-release-please-version`
-  comment that release-please raises it by. The plugin's and marketplace's
+- version.txt, the Claude Code and Cursor plugin versions and the skill's
+  metadata.version are one version, and the metadata.version line carries
+  the `x-release-please-version` comment that release-please raises it by.
+  The Cursor marketplace lists exactly the plugin in plugins/musher. The plugin's and marketplace's
   names agree with the skill's.
 - skills.sh.json points at the directory the skill is in.
 - A reference over 100 lines opens with a `## Contents` list that links every
@@ -145,6 +146,8 @@ def main() -> int:
     versions = {
         "version.txt": VERSION_FILE.read_text(encoding="utf-8").strip() if VERSION_FILE.exists() else None,
         "plugins/musher/.claude-plugin/plugin.json": plugin.get("version"),
+        "plugins/musher/.cursor-plugin/plugin.json": json.loads(
+            (PLUGIN / ".cursor-plugin/plugin.json").read_text(encoding="utf-8")).get("version"),
         "the skill's metadata.version": version.group(1) if version else None,
     }
     if None in versions.values() or len(set(versions.values())) > 1:
@@ -152,6 +155,9 @@ def main() -> int:
         problems.append(f"the versions differ ({found}); release-please's release pull request raises them together")
     if [entry["name"] for entry in marketplace["plugins"]] != [plugin["name"]]:
         problems.append("the marketplace does not list exactly the plugin in plugins/musher")
+    cursor = json.loads((ROOT / ".cursor-plugin/marketplace.json").read_text(encoding="utf-8"))
+    if [(entry["name"], entry["source"]) for entry in cursor["plugins"]] != [(plugin["name"], "plugins/musher")]:
+        problems.append("the Cursor marketplace does not list exactly the plugin in plugins/musher")
 
     paths = json.loads((ROOT / "skills.sh.json").read_text(encoding="utf-8")).get("paths", [])
     if "./plugins/musher/skills" not in paths:
