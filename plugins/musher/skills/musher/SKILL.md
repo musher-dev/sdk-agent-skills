@@ -36,13 +36,14 @@ same operations as tools.
 1. **Never ask the user to paste a key into the chat, and never put a key on a command line.** Musher's MCP tools
    need no key. The API and the CLI read one from `MUSHER_API_KEY`. With neither the tools nor the key, tell the user
    how to get one of them (the preflight, below) and stop.
-2. **Confirm before anything that bills.** Before a deploy, get the cost estimate (`references/catalog.md`), tell the
-   user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
+2. **Confirm before anything that bills.** Before a deploy, get the cost: a Catalog app's estimate
+   (`references/catalog.md`), or each node's compute profile pricing for the user's own app
+   (`references/auth-and-billing.md`). Tell the user the hourly figure and the compute profile, and wait for a yes. Every rate is a launch rate that may change, so
    quote the live figure, never one from memory.
 3. **Never report success before you see it.** A deploy is done when the deployment's `status.phase` is `ACTIVE`,
    its `status.readiness` is `READY`, and you have its URL. `PROVISIONING` is not done, and after an update the
-   phase stays `ACTIVE` while the app is down. `FAILED` or `DEGRADED` means read the logs
-   (`references/troubleshoot.md`).
+   phase stays `ACTIVE` while the app is down. A `status.phase` of `FAILED`, or a `status.health` of `DEGRADED` or
+   `UNHEALTHY`, means read the logs (`references/troubleshoot.md`).
 4. **Stay non-interactive.** Pass `--json --no-input` to the CLI. Send an `Idempotency-Key` header (a fresh UUID per
    intended action) with every API write, so a retry cannot create a second deployment.
 5. **You cannot pay, create keys, or invite people.** Those need a person in the Console. Say exactly what to click,

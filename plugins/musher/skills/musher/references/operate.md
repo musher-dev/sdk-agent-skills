@@ -9,7 +9,8 @@ The deployment id is `metadata.id` in any deployment response. To look one up by
 ## Status
 
 - **API:** `GET /v1/deployments/{id}`. Read `status.phase`, which is one of `DRAFT`, `PROVISIONING`, `ACTIVE`,
-  `DEGRADED`, `FAILED`, `SUSPENDED` or `DELETED`. `status.health` and `status.readiness` add detail, and
+  `FAILED`, `SUSPENDED` or `DELETED`. `status.health` (`HEALTHY`, `DEGRADED` when some replicas aren't ready,
+  `UNHEALTHY` or `UNKNOWN`) and `status.readiness` add detail, and
   `status.error` explains a failure. `status.progress` names the stage a deploy has reached and the node that
   blocks it. `status.allowedActions` covers suspend, resume, retry, cancel and terminate only: it says nothing about
   restart, redeploy, rollback or update.

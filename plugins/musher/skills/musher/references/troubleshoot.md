@@ -51,7 +51,7 @@ Retrying a write with the **same** `Idempotency-Key` within 24 hours returns the
    (`GET /v1/deployments/{id}/replicas`). The message says it starts as soon as a host is ready, but no host may be
    on its way, and `deploy-readiness` still reads deployable. After three minutes, tell the user and offer a
    smaller profile (publish a revision that names it, then `:update`) or `POST /v1/deployments/{id}:cancel`.
-3. **`DEGRADED`, or `ACTIVE` with an endpoint that isn't serving.** Read the `RUNTIME` logs at `ERROR`. The most common
+3. **`ACTIVE` with `status.health` at `DEGRADED` or `UNHEALTHY`, or an endpoint that isn't serving.** Read the `RUNTIME` logs at `ERROR`. The most common
    cause is an app listening on a port other than the endpoint's `targetPort`, or only on `127.0.0.1`. It must listen
    on `0.0.0.0`.
 4. **`403 api-key-creator-not-in-good-standing` or `ERR_DEPLOYMENT_FACT_UNAVAILABLE`.** An API key deploys as the
