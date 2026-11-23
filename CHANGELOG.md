@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/musher-dev/sdk-agent-skills/compare/v0.3.1...v0.3.2) (2026-11-23)
+
+
+### Features
+
+* **plugin:** add the listing icon, a Cursor manifest and the plugin README ([#18](https://github.com/musher-dev/sdk-agent-skills/issues/18)) ([5bc74f2](https://github.com/musher-dev/sdk-agent-skills/commit/5bc74f23089e898f43483c6dbf48dc6697dca69a))
+
 ## [0.3.1](https://github.com/musher-dev/sdk-agent-skills/compare/v0.3.0...v0.3.1) (2026-11-23)
 
 

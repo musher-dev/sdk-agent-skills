@@ -1,7 +1,7 @@
 {
   "name": "musher",
   "displayName": "Musher",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Deploy and operate apps, containers and Catalog tools (n8n, Open WebUI, LiteLLM, OpenClaw and more) on Musher.",
   "icon": "./.claude-plugin/icon.png",
   "author": {
