@@ -126,4 +126,5 @@ publishes `vX.Y.Z`.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE), for this repository's code and text. The Musher name and logo, including the plugin icon
+(`plugins/musher/.claude-plugin/icon.png`), are Musher's own marks and aren't licensed under it.
