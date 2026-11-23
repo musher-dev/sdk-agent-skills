@@ -31,17 +31,29 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca  # v5.1.1
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d  # v5.2.9
         with:
           version: 2026.9.12
 
       # The rules the commit-msg hook applies, from the same file (COMMIT-04).
       # The title reaches committed on stdin from the environment, never
       # interpolated into the script, so it cannot inject into the shell.
+      # Dependabot titles name every package they bump, with no option to
+      # shorten them, so for Dependabot alone the subject-length limit is
+      # lifted; every other rule still applies.
       - name: Check the title passes committed
         env:
           TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$TITLE" | committed --config .config/commits/committed.toml --commit-file -
+          DEPENDABOT: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+        run: |
+          set -euo pipefail
+          if [[ "$DEPENDABOT" == "true" ]]; then
+            relaxed="$RUNNER_TEMP/committed.toml"
+            sed 's/^subject_length = .*/subject_length = 0/' .config/commits/committed.toml > "$relaxed"
+            printf '%s\n' "$TITLE" | committed --config "$relaxed" --commit-file -
+          else
+            printf '%s\n' "$TITLE" | committed --config .config/commits/committed.toml --commit-file -
+          fi
 
       # committed cannot require a scope or a lowercase subject; the action
       # checks those, with the types and scopes read from the same file.
@@ -59,11 +71,15 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Check the title has a scope and a lowercase subject
-        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v6.1.1
+        uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6  # v6.1.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           types: ${{ steps.allowed.outputs.types }}
           scopes: ${{ steps.allowed.outputs.scopes }}
           requireScope: true
-          subjectPattern: ^[a-z].+$
+          # Dependabot capitalizes its fixed verb ("build(deps): Bump ...") with
+          # no option to change it; that word is the one capital allowed.
+          subjectPattern: >-
+            ${{ github.event.pull_request.user.login == 'dependabot[bot]'
+            && '^(?:[a-z]|Bump ).+$' || '^[a-z].+$' }}
