@@ -44,10 +44,13 @@ organization's `id`.
   only the hours it runs. A refused deploy creates nothing, and a deployment that fails before it first runs is never
   billed.
 - **Storage** is billed while a volume exists, including while the deployment is suspended.
+- **When the balance reaches zero**, Musher suspends the organization's `ACTIVE` and `DEGRADED` deployments and
+  refuses to deploy, redeploy, update, roll back or resume one with `402 payment-required`. Volumes and their data are
+  kept. Once funds are added, Musher resumes the deployments it suspended; one a person suspended stays suspended.
 - **Estimates**, all anonymous:
   - `GET /v1/catalog/listings/{id}/cost-estimate` for a Catalog app: `hourlyRate`, `estimatedMonthlyRate`, and
-    `rateStatus`, which is `PLACEHOLDER` while the rates are launch figures that may still change. Say so when you
-    quote one.
+    `rateStatus`: `FINAL` for a settled rate, `PLACEHOLDER` when a rate in it is a launch figure that may still
+    change. Say so when you quote a `PLACEHOLDER` one.
   - `GET /v1/reference/compute-profiles` lists every profile (`computeProfiles`, with vCPU and memory; the
     recommended one has `isRecommended`).
   - `GET /v1/reference/compute-profiles/{slug}/pricing` gives one profile's `effectiveHourlyRate`.
