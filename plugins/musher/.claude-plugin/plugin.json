@@ -1,13 +1,22 @@
 {
   "name": "musher",
-  "version": "0.3.1",
+  "displayName": "Musher",
+  "version": "0.3.2",
   "description": "Deploy and operate apps, containers and Catalog tools (n8n, Open WebUI, LiteLLM, OpenClaw and more) on Musher.",
+  "icon": "./.claude-plugin/icon.png",
   "author": {
     "name": "Musher",
     "url": "https://musher.dev"
   },
-  "homepage": "https://docs.musher.dev/",
+  "homepage": "https://docs.musher.dev/agents/skill",
   "repository": "https://github.com/musher-dev/sdk-agent-skills",
   "license": "MIT",
-  "keywords": ["musher", "deploy", "hosting", "self-hosted", "paas"]
+  "privacyPolicyUrl": "https://musher.dev/privacy",
+  "keywords": [
+    "musher",
+    "deploy",
+    "hosting",
+    "self-hosted",
+    "paas"
+  ]
 }

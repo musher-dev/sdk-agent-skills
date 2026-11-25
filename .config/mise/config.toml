@@ -7,7 +7,7 @@
 min_version = "2026.9.12"
 
 [tools]
-"github:musher-dev/engineering-conventions" = "0.9.3"
+"github:musher-dev/engineering-conventions" = "0.9.7"
 
 # GHA-33 delegates workflow correctness and security to these two.
 "aqua:rhysd/actionlint" = "1.7.12"

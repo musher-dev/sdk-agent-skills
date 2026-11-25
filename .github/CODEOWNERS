@@ -4,5 +4,7 @@
 /.repo/                        @musher-dev/sdk
 /.config/                      @musher-dev/sdk
 /.claude-plugin/               @musher-dev/sdk
+/.cursor-plugin/               @musher-dev/sdk
 /plugins/                      @musher-dev/sdk
 /skills.sh.json                @musher-dev/sdk
+/version.txt                   @musher-dev/sdk

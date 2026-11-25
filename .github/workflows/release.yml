@@ -1,0 +1,102 @@
+name: Release
+
+# Owns the release pull request, the release tag and the release (EC-0026).
+# release-please keeps one open pull request that raises version.txt, the
+# plugin's version, the skill's metadata.version and CHANGELOG.md together; a
+# person merges it, and the next run creates the `vX.Y.Z` tag and a draft
+# GitHub Release. Publish Release then publishes the draft, which from that
+# moment is immutable (REL-14).
+#
+# The plugin and the skill are this repository's files at its default branch,
+# so there is no image to build and nothing to attach to the release. The
+# template's Image job is gone, and with it the workflow_dispatch tag input,
+# which REL-20 asks for only where a run attaches assets. The release is still
+# created as a draft with its tag and published last (REL-07, REL-19), so the
+# repository releases as every other one does. A draft left by a failed
+# Publish Release is finished by re-running that job.
+
+on:
+  push:
+    branches: [main]
+
+# Every job states what it needs; the release App's token makes the writes that
+# must start other workflows or bypass the tag ruleset.
+permissions: {}
+
+# Queued, never cancelled: a run cancelled between creating a tag and
+# publishing its release leaves a draft to finish by hand (REL-15).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release_please:
+    name: Release PR and Tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      # The release App's token, never the default token (GHA-47, REL-16): a
+      # release pull request the default token opens starts no workflow, so it
+      # would never report its required contexts.
+      - name: Mint the release App token
+        id: app_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or update the release pull request
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
+        with:
+          token: ${{ steps.app_token.outputs.token }}
+          config-file: .github/release-please/config.json
+          manifest-file: .github/release-please/manifest.json
+
+  finalize:
+    name: Publish Release
+    needs: release_please
+    # !cancelled(): the last job of a release workflow must not be skipped
+    # into a green run (GHA-48).
+    if: ${{ !cancelled() && needs.release_please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      TAG: ${{ needs.release_please.outputs.tag_name }}
+    steps:
+      # The release App publishes (REL-19): a release the default token
+      # publishes starts no workflow on its `published` event.
+      - name: Mint the release App token
+        id: app_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+
+      # Immutable releases are a setting no file records; reading the release
+      # back is how the run proves it is on (REL-14).
+      - name: Check the published release is immutable
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          immutable="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq .immutable)"
+          if [[ "$immutable" != "true" ]]; then
+            echo "::error::release $TAG was published but is not immutable; enable immutable releases"
+            exit 1
+          fi

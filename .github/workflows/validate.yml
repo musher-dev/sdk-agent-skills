@@ -34,7 +34,7 @@ jobs:
 
       # Installs the tools pinned in .config/mise/config.toml, the same versions a
       # local run uses. Its version is the configuration's min_version (TOOL-04).
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca  # v5.1.1
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d  # v5.2.9
         with:
           version: 2026.9.12
 
@@ -50,12 +50,17 @@ jobs:
     name: Conventions
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      # The CLI installs its engines through `mise exec`, and mise-action keeps
+      # its token to its own step (GHA-55). Without this the install runs
+      # anonymously and fails on GitHub's shared rate limit.
+      MISE_GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca  # v5.1.1
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d  # v5.2.9
         with:
           version: 2026.9.12
 
@@ -73,14 +78,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca  # v5.1.1
+      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d  # v5.2.9
         with:
           version: 2026.9.12
 
-      # The checks `task test` runs: size, links and manifest agreement, the
-      # Agent Skills reference validator, and the skills CLI's own discovery.
+      # The checks `task test` runs: size, links and manifest agreement, the MCP
+      # tool names against the server's public reference, the Agent Skills
+      # reference validator, and the skills CLI's own discovery.
       - name: Check the skill's size, links and manifests
         run: python3 -I scripts/check_skill.py
+
+      - name: Check every MCP tool the skill names still exists
+        run: python3 -I scripts/check_mcp_tools.py
 
       - name: Validate the skill against the Agent Skills specification
         run: uvx --from skills-ref@0.1.1 agentskills validate plugins/musher/skills/musher

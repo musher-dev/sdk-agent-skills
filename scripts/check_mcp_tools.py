@@ -14,12 +14,18 @@ the same names, but CI can't read it.
   start with no tool verb and are skipped.
 - Every toolset slug listed in references/mcp.md's Toolsets section must be a
   live toolset, and every live toolset must be listed there.
+- The evals' mocks of the server (`plugins/musher/evals/**/mocks/musher/`)
+  stand in for live tools: each `<tool>.md` mock, each tool `_tools.json`
+  describes, and each `mcp__plugin_musher_musher__<tool>` a grader names must
+  be a live tool, and every mock must have its description in `_tools.json`.
+  A renamed tool would otherwise leave a case testing a tool that is gone.
 
 Standard library only. It needs network access to docs.musher.dev.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 import urllib.request
@@ -27,6 +33,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILL_DIR = ROOT / "plugins/musher/skills/musher"
+EVALS = ROOT / "plugins/musher/evals"
+# How Claude Code names the tools of the server the plugin's .mcp.json calls `musher`.
+PREFIX = "mcp__plugin_musher_musher__"
 DOCS = "https://docs.musher.dev"
 
 
@@ -47,6 +56,29 @@ def live() -> tuple[set[str], set[str]]:
             raise SystemExit(f"check_mcp_tools: found no tools on {DOCS}/agents/tools/{slug}; has the page changed?")
         tools |= found
     return toolsets, tools
+
+
+def eval_problems(tools: set[str]) -> list[str]:
+    """Every tool the evals mock, describe or grade must be a live tool."""
+    problems: list[str] = []
+    for mocks in sorted(EVALS.glob("**/mocks/musher")):
+        where = mocks.relative_to(ROOT)
+        mocked = {path.stem for path in mocks.glob("*.md") if not path.name.startswith("_")}
+        problems += [f"{where}/{name}.md mocks `{name}`, which the MCP server no longer has"
+                     for name in sorted(mocked - tools)]
+        described_file = mocks / "_tools.json"
+        if not described_file.exists():
+            continue
+        described = {tool["name"] for tool in json.loads(described_file.read_text(encoding="utf-8"))["tools"]}
+        problems += [f"{where}/_tools.json describes `{name}`, which the MCP server no longer has"
+                     for name in sorted(described - tools)]
+        problems += [f"{where}/_tools.json has no description of the mocked `{name}`"
+                     for name in sorted(mocked - described)]
+    for grader in sorted(EVALS.glob("**/graders/*.md")):
+        for name in sorted(set(re.findall(rf"{PREFIX}([a-z0-9_]+)", grader.read_text(encoding="utf-8")))):
+            if name not in tools:
+                problems.append(f"{grader.relative_to(ROOT)} grades `{name}`, which the MCP server no longer has")
+    return problems
 
 
 def main() -> int:
@@ -73,6 +105,8 @@ def main() -> int:
         problems += [f"references/mcp.md lists toolset `{slug}`, which the server no longer has"
                      for slug in sorted(listed - toolsets)]
         problems += [f"references/mcp.md's Toolsets section is missing `{slug}`" for slug in sorted(toolsets - listed)]
+
+    problems += eval_problems(tools)
 
     for problem in problems:
         print(f"check_mcp_tools: {problem}", file=sys.stderr)

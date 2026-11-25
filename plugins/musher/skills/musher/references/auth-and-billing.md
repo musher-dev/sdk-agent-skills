@@ -2,9 +2,12 @@
 
 ## The API key
 
-- A person creates it at https://console.musher.dev: the organization's **Settings → API Keys → Create API Key**.
-  The key carries the permissions of the role chosen for it, and it is shown only once. An agent can't create or
-  reveal keys.
+- A person with the Owner or Admin role creates it at https://console.musher.dev: **Organization settings → API
+  keys**, with **API** as its use. The key carries the permissions of the role chosen for it, and it is shown only
+  once. An agent can't create or reveal keys.
+- **A key acts as the person who created it.** A deploy made with it resolves the app's creator facts from that
+  person. If they are deactivated, removed from the organization or hold no role in it, the key is refused with
+  `403 api-key-creator-not-in-good-standing`, and someone has to create a new one.
 - Keys look like `mush_…`, and each one is bound to one organization.
 - A key is made for one use, the API or the MCP server, and the other refuses it. The API answers an MCP key `401`
   with "API key is not valid for this API surface". Both kinds start with `mush_`, so the prefix does not tell
@@ -20,8 +23,9 @@
 
 What to tell a user who has no key:
 
-> Create an API key at https://console.musher.dev (your organization's Settings → API Keys → Create API Key), then set
-> it in this environment as `MUSHER_API_KEY` (for example, `export MUSHER_API_KEY=…` in your shell, not in this chat). Tell me when it's set.
+> Create an API key at https://console.musher.dev (Organization settings → API keys, with API as its use; it takes the
+> Owner or Admin role), then set it in this environment as `MUSHER_API_KEY` (for example, `export MUSHER_API_KEY=…`
+> in your shell, not in this chat). Tell me when it's set.
 
 ## The organization
 
