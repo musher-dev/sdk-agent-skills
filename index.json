@@ -1,0 +1,12 @@
+[
+  {
+    "repository": "engineering-conventions",
+    "output": null,
+    "pinned": "0.9.7",
+    "latest": "0.9.8",
+    "latestInMajor": "0.9.8",
+    "state": "behind-minor",
+    "label": "engineering-conventions",
+    "badge": "engineering-conventions.svg"
+  }
+]
